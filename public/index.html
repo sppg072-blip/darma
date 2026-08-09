@@ -2688,116 +2688,171 @@ function cetakRekamDocx(mode){
 
 async function generateFormDocx(jenis, filled, rec) {
   if(!window.docx){toast('Library Word belum termuat','e');return;}
-  const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle, ShadingType } = window.docx;
+  const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle, VerticalAlign } = window.docx;
   
   const u = rec.unitId ? unitById(rec.unitId) : null;
   const f = rec.form || {};
   const tgl = rec.tgl || '';
   const isK = jenis === 'KDMP';
   
-  const sections = [];
-
-  // --- Title ---
-  sections.push(new Paragraph({
-    children: [new TextRun({ text: isK ? 'KUESIONER SURVEI KPPN' : 'SURVEI PENYALURAN MBG', bold: true, size: 28 })],
-    alignment: AlignmentType.CENTER
-  }));
-  sections.push(new Paragraph({
-    children: [new TextRun({ text: isK ? 'Monitoring dan Evaluasi Koperasi Desa/Kelurahan Merah Putih (KDMP/KKMP)' : 'Form Survei SPPG', italics: true, size: 20 })],
-    alignment: AlignmentType.CENTER,
-    spacing: { after: 200 }
-  }));
-
-  // --- Identity Table ---
-  const idRows = isK ? [
-    ['Nama KDMP/KKMP', u?u.nama:''],
-    ['NIB Koperasi', f.nib||''],
-    ['NPWP Koperasi', f.npwp||''],
-    ['Bidang Usaha', f.bidang_usaha||''],
-    ['Status Bangun', f.status_bangun||''],
-    ['Wilayah', (f.desa||'') + ', ' + (u?u.kec:'') + ', ' + (u?u.kab:'')],
-    ['Responden', (f.resp_nama||'') + ' (' + (f.resp_hp||'') + ')'],
-    ['Tanggal Survei', fmtD(tgl)]
-  ] : [
-    ['Nama SPPG', u?u.nama:''],
-    ['Alamat', u?u.alamat:''],
-    ['Petugas', rec.petugas||'']
-  ];
-
-  const table = new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
-    rows: idRows.map(r => new TableRow({
-      children: [
-        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: r[0], bold: true })] })], width: { size: 30, type: WidthType.PERCENTAGE } }),
-        new TableCell({ children: [new Paragraph({ text: r[1] })], width: { size: 70, type: WidthType.PERCENTAGE } })
-      ]
-    }))
-  });
-  sections.push(table);
-  sections.push(new Paragraph({ text: '', spacing: { after: 200 } }));
+  const children = [];
 
   if(isK) {
-    // --- Scale Ratings ---
+    // --- Header Document ---
+    children.push(new Paragraph({ children: [new TextRun({ text: 'MONEV KDMP/KKMP', bold: true, size: 24 })] }));
+    const goals = [
+      '1. Penilaian kesesuaian perencanaan dengan keadaan lapangan di KDKMP.',
+      '2. Kesesuaian dengan pelaksanaan tata kelola, melalui melihat operasional dan keuangan KDKMP.',
+      '3. Seberapa besar dampak untuk perekonomian dan masyarakat dengan adanya KDKMP'
+    ];
+    goals.forEach(g => children.push(new Paragraph({ children: [new TextRun({ text: g, size: 20 })] })));
+    children.push(new Paragraph({ text: '', spacing: { before: 200 } }));
+
+    children.push(new Paragraph({ children: [new TextRun({ text: 'KUESIONER SURVEI KPPN', bold: true, size: 28 })], alignment: AlignmentType.CENTER }));
+    children.push(new Paragraph({ children: [new TextRun({ text: 'Monitoring dan Evaluasi Koperasi Desa/Kelurahan Merah Putih (KDMP/KKMP)', bold: true, size: 22 })], alignment: AlignmentType.CENTER }));
+    children.push(new Paragraph({ children: [new TextRun({ text: 'Petunjuk Pengisian', bold: true, size: 20 })], spacing: { before: 200 } }));
+    children.push(new Paragraph({ children: [new TextRun({ text: 'Berikan penilaian terhadap setiap pernyataan menggunakan skala berikut.', size: 20 })], spacing: { after: 100 } }));
+
+    // --- Criteria Table ---
+    children.push(new Table({
+      width: { size: 60, type: WidthType.PERCENTAGE },
+      rows: [
+        new TableRow({ children: [new TableCell({ children: [new Paragraph({ text: 'Skor', bold: true, alignment: AlignmentType.CENTER })] }), new TableCell({ children: [new Paragraph({ text: 'Kriteria', bold: true })] })] }),
+        new TableRow({ children: [new TableCell({ children: [new Paragraph({ text: '1', alignment: AlignmentType.CENTER })] }), new TableCell({ children: [new Paragraph({ text: 'Sangat Tidak Baik / Sangat Tidak Setuju' })] })] }),
+        new TableRow({ children: [new TableCell({ children: [new Paragraph({ text: '2', alignment: AlignmentType.CENTER })] }), new TableCell({ children: [new Paragraph({ text: 'Kurang Baik / Kurang Setuju' })] })] }),
+        new TableRow({ children: [new TableCell({ children: [new Paragraph({ text: '3', alignment: AlignmentType.CENTER })] }), new TableCell({ children: [new Paragraph({ text: 'Baik' })] })] }),
+        new TableRow({ children: [new TableCell({ children: [new Paragraph({ text: '4', alignment: AlignmentType.CENTER })] }), new TableCell({ children: [new Paragraph({ text: 'Sangat Baik / Sangat Setuju' })] })] }),
+      ]
+    }));
+    children.push(new Paragraph({ text: '', spacing: { after: 200 } }));
+
+    // --- Section A: Identitas Koperasi ---
+    children.push(new Paragraph({ children: [new TextRun({ text: 'A. Identitas Koperasi', bold: true, size: 22 })] }));
+    const idA = [
+      ['Nama KDMP/KKMP', u?u.nama:''],
+      ['Nomor Identitas Berusaha (NIB) Koperasi', f.nib||''],
+      ['Apakah sudah memiliki NPWP Koperasi', f.npwp||''],
+      ['Bidang Usaha', f.bidang_usaha||''],
+      ['Status Pembangunan Koperasi', f.status_bangun||''],
+      ['Provinsi', f.prov||'Jawa Tengah'],
+      ['Desa/Kelurahan', f.desa||''],
+      ['Kabupaten/Kota', u?u.kab:''],
+      ['Tanggal Survei', fmtD(tgl)]
+    ];
+    children.push(new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: idA.map(r => new TableRow({ children: [
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: '- ' + r[0] + ' :', size: 20 })] })], width: { size: 50, type: WidthType.PERCENTAGE }, border: { top: {style: BorderStyle.NONE}, bottom: {style: BorderStyle.NONE}, left: {style: BorderStyle.NONE}, right: {style: BorderStyle.NONE} } }),
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: r[1] || '....................', size: 20 })] })], width: { size: 50, type: WidthType.PERCENTAGE }, border: { top: {style: BorderStyle.NONE}, bottom: {style: BorderStyle.NONE}, left: {style: BorderStyle.NONE}, right: {style: BorderStyle.NONE} } })
+      ]}))
+    }));
+
+    // --- Section B: Identitas Responden ---
+    children.push(new Paragraph({ children: [new TextRun({ text: 'B. Identitas Responden', bold: true, size: 22 })], spacing: { before: 200 } }));
+    const idB = [
+      ['Nama Responden', f.resp_nama||''],
+      ['No. HP', f.resp_hp||''],
+      ['Jenis Responden', f.resp_jenis||'']
+    ];
+    idB.forEach(r => children.push(new Paragraph({ children: [new TextRun({ text: '- ' + r[0] + ': ' + (r[1] || '....................'), size: 20 })] })));
+
+    // --- Section C: Penilaian ---
+    children.push(new Paragraph({ children: [new TextRun({ text: 'C. PENILAIAN', bold: true, size: 22 })], spacing: { before: 300, after: 100 } }));
+    
     FORM_KDMP.forEach(sec => {
-      sections.push(new Paragraph({
-        children: [new TextRun({ text: sec.kode + '. ' + sec.judul, bold: true, color: 'C8102E' })],
-        spacing: { before: 200, after: 100 }
-      }));
-
+      children.push(new Paragraph({ children: [new TextRun({ text: sec.kode + '. ' + sec.judul.toUpperCase(), bold: true, size: 20 })], spacing: { before: 150, after: 80 } }));
       const ratingRows = [
-        new TableRow({
-          children: [
-            new TableCell({ children: [new Paragraph({ text: 'No', bold: true })], width: { size: 5, type: WidthType.PERCENTAGE } }),
-            new TableCell({ children: [new Paragraph({ text: 'Pernyataan', bold: true })], width: { size: 55, type: WidthType.PERCENTAGE } }),
-            ...[1,2,3,4].map(v => new TableCell({ children: [new Paragraph({ text: String(v), bold: true, alignment: AlignmentType.CENTER })], width: { size: 10, type: WidthType.PERCENTAGE } }))
-          ]
-        })
+        new TableRow({ children: [
+          new TableCell({ children: [new Paragraph({ text: 'No', bold: true, alignment: AlignmentType.CENTER })], width: { size: 5, type: WidthType.PERCENTAGE } }),
+          new TableCell({ children: [new Paragraph({ text: 'Pernyataan', bold: true })], width: { size: 55, type: WidthType.PERCENTAGE } }),
+          ...[1,2,3,4].map(v => new TableCell({ children: [new Paragraph({ text: String(v), bold: true, alignment: AlignmentType.CENTER })], width: { size: 10, type: WidthType.PERCENTAGE } }))
+        ]})
       ];
-
       const scores = (f.sections && f.sections.find(s => s.kode === sec.kode))?.scores || [];
       sec.items.forEach((it, ii) => {
         const s = scores[ii] || 0;
-        ratingRows.push(new TableRow({
-          children: [
-            new TableCell({ children: [new Paragraph({ text: String(ii+1), alignment: AlignmentType.CENTER })] }),
-            new TableCell({ children: [new Paragraph({ text: it })] }),
-            ...[1,2,3,4].map(v => new TableCell({ children: [new Paragraph({ text: (filled && s === v) ? 'X' : '', alignment: AlignmentType.CENTER })] }))
-          ]
-        }));
+        ratingRows.push(new TableRow({ children: [
+          new TableCell({ children: [new Paragraph({ text: String(ii+1), alignment: AlignmentType.CENTER })] }),
+          new TableCell({ children: [new Paragraph({ text: it })] }),
+          ...[1,2,3,4].map(v => new TableCell({ children: [new Paragraph({ text: (filled && s === v) ? 'X' : '', alignment: AlignmentType.CENTER })] }))
+        ]}));
       });
-      sections.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: ratingRows }));
+      children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: ratingRows }));
     });
 
-    // --- Open Questions ---
-    sections.push(new Paragraph({ children: [new TextRun({ text: 'D. Pertanyaan Terbuka', bold: true })], spacing: { before: 300, after: 100 } }));
+    // --- Compliance Section VII ---
+    children.push(new Paragraph({ children: [new TextRun({ text: 'VII. Kepatuhan Regulasi & Akuntabilitas (Compliance)', bold: true, size: 20 })], spacing: { before: 200, after: 80 } }));
+    const compRows = [
+      new TableRow({ children: [
+        new TableCell({ children: [new Paragraph({ text: 'No', bold: true, alignment: AlignmentType.CENTER })], width: { size: 5, type: WidthType.PERCENTAGE } }),
+        new TableCell({ children: [new Paragraph({ text: 'Pernyataan Konfirmasi', bold: true })], width: { size: 65, type: WidthType.PERCENTAGE } }),
+        new TableCell({ children: [new Paragraph({ text: 'Ya', bold: true, alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } }),
+        new TableCell({ children: [new Paragraph({ text: 'Tidak', bold: true, alignment: AlignmentType.CENTER })], width: { size: 15, type: WidthType.PERCENTAGE } })
+      ]})
+    ];
+    COMPLIANCE_KDMP.forEach((c, ci) => {
+      const sel = (f.compliance && f.compliance[ci]);
+      compRows.push(new TableRow({ children: [
+        new TableCell({ children: [new Paragraph({ text: String(ci+1), alignment: AlignmentType.CENTER })] }),
+        new TableCell({ children: [new Paragraph({ text: c })] }),
+        new TableCell({ children: [new Paragraph({ text: (filled && sel === 'ya') ? 'X' : '', alignment: AlignmentType.CENTER })] }),
+        new TableCell({ children: [new Paragraph({ text: (filled && sel === 'tidak') ? 'X' : '', alignment: AlignmentType.CENTER })] })
+      ]}));
+    });
+    children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: compRows }));
+
+    // --- Section D: Pertanyaan Terbuka ---
+    children.push(new Paragraph({ children: [new TextRun({ text: 'D. Pertanyaan Terbuka', bold: true, size: 22 })], spacing: { before: 300, after: 100 } }));
     const openQ = [
-      ['1. Kelebihan', f.open_kelebihan],
-      ['2. Kendala', f.open_kendala],
-      ['3. Saran', f.open_saran],
-      ['4. Naker Pembangunan', f.num_naker],
-      ['5. Produk Unggulan', f.open_produk]
+      ['1. Apa kelebihan KDMP/KKMP menurut Anda?', f.open_kelebihan],
+      ['2. Apa kendala utama yang dihadapi dan upaya yang sudah dilakukan?', f.open_kendala],
+      ['3. Apa saran untuk meningkatkan kinerja KDMP/KKMP?', f.open_saran],
+      ['4. Berapa jumlah tenaga kerja yang diserap untuk pembangunan koperasi?', f.num_naker],
+      ['5. Produk unggulan yang terjual? (termasuk produk lokal desa)', f.open_produk]
     ];
     openQ.forEach(q => {
-      sections.push(new Paragraph({ children: [new TextRun({ text: q[0], bold: true })] }));
-      sections.push(new Paragraph({ text: filled ? (q[1] || '-') : '.........................................................................', spacing: { after: 100 } }));
+      children.push(new Paragraph({ children: [new TextRun({ text: q[0], bold: true, size: 20 })] }));
+      children.push(new Paragraph({ children: [new TextRun({ text: filled ? (q[1] || '-') : '.........................................................................', size: 20 })], spacing: { after: 100 } }));
     });
+
+    // --- Signatures ---
+    children.push(new Paragraph({ text: '', spacing: { before: 400 } }));
+    children.push(new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: [
+        new TableRow({ children: [
+          new TableCell({ children: [new Paragraph({ text: 'Mengetahui,', alignment: AlignmentType.CENTER })], border: { top: {style: BorderStyle.NONE}, bottom: {style: BorderStyle.NONE}, left: {style: BorderStyle.NONE}, right: {style: BorderStyle.NONE} } }),
+          new TableCell({ children: [new Paragraph({ text: (u?u.kab:'............') + ', ' + (tgl?fmtD(tgl):'........'), alignment: AlignmentType.CENTER })], border: { top: {style: BorderStyle.NONE}, bottom: {style: BorderStyle.NONE}, left: {style: BorderStyle.NONE}, right: {style: BorderStyle.NONE} } })
+        ]}),
+        new TableRow({ children: [
+          new TableCell({ children: [new Paragraph({ text: 'Petugas Monitoring,', alignment: AlignmentType.CENTER })], border: { top: {style: BorderStyle.NONE}, bottom: {style: BorderStyle.NONE}, left: {style: BorderStyle.NONE}, right: {style: BorderStyle.NONE} } }),
+          new TableCell({ children: [new Paragraph({ text: 'Responden/Pengurus,', alignment: AlignmentType.CENTER })], border: { top: {style: BorderStyle.NONE}, bottom: {style: BorderStyle.NONE}, left: {style: BorderStyle.NONE}, right: {style: BorderStyle.NONE} } })
+        ]}),
+        new TableRow({ children: [
+          new TableCell({ children: [new Paragraph({ text: '', spacing: { before: 800 } })], border: { top: {style: BorderStyle.NONE}, bottom: {style: BorderStyle.NONE}, left: {style: BorderStyle.NONE}, right: {style: BorderStyle.NONE} } }),
+          new TableCell({ children: [new Paragraph({ text: '', spacing: { before: 800 } })], border: { top: {style: BorderStyle.NONE}, bottom: {style: BorderStyle.NONE}, left: {style: BorderStyle.NONE}, right: {style: BorderStyle.NONE} } })
+        ]}),
+        new TableRow({ children: [
+          new TableCell({ children: [new Paragraph({ text: '( ' + (rec.petugas || '..........................') + ' )', alignment: AlignmentType.CENTER, bold: true })], border: { top: {style: BorderStyle.NONE}, bottom: {style: BorderStyle.NONE}, left: {style: BorderStyle.NONE}, right: {style: BorderStyle.NONE} } }),
+          new TableCell({ children: [new Paragraph({ text: '( ' + (f.resp_nama || '..........................') + ' )', alignment: AlignmentType.CENTER, bold: true })], border: { top: {style: BorderStyle.NONE}, bottom: {style: BorderStyle.NONE}, left: {style: BorderStyle.NONE}, right: {style: BorderStyle.NONE} } })
+        ]})
+      ]
+    }));
+  } else {
+    // --- SPPG / NAKER (Simplified for now, as focus is KDMP) ---
+    children.push(new Paragraph({ text: 'LAPORAN MONITORING ' + jenis, bold: true }));
+    children.push(new Paragraph({ text: 'Unit: ' + (u?u.nama:'-') }));
   }
 
-  // --- Footer / Signatures ---
-  sections.push(new Paragraph({ text: '', spacing: { before: 400 } }));
-  sections.push(new Paragraph({
-    children: [new TextRun({ text: 'Dicetak melalui Aplikasi DARMA - ' + new Date().toLocaleString(), size: 16, italics: true })]
-  }));
-
   const doc = new Document({
-    sections: [{ properties: {}, children: sections }]
+    sections: [{ properties: {}, children: children }]
   });
 
   const blob = await Packer.toBlob(doc);
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `DARMA_Laporan_${jenis}_${tgl || 'blanko'}.docx`;
+  a.download = `DARMA_Laporan_${jenis}_${tgl || 'blank'}.docx`;
   a.click();
   toast('Word document (.docx) berhasil dibuat');
 }
@@ -2815,5 +2870,5 @@ function cetakMonDocx(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2818da30f0c4717',t:'MTc4NjIyMzkwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a285d5928f8bff91',t:'MTc4NjI2ODc5Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a286f3a72caa5937',t:'MTc4NjI4MDUxMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2818da30f0c4717',t:'MTc4NjIyMzkwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a285d5928f8bff91',t:'MTc4NjI2ODc5Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a286f7daae5f89b9',t:'MTc4NjI4MDY4Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
