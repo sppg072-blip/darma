@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SIMON-MBG | Monitoring MBG - SPPG & KDMP Koperasi Desa Merah Putih</title>
+<title>DARMA | Dashboard Akurat Reporting Manajemen Aplikasi SPPG dan KDMP Wilayah Pekalongan</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -403,8 +403,8 @@ textarea.fc{resize:vertical;min-height:56px;}
 <div id="loginOverlay">
   <div class="lbox">
     <div class="llogo">🍽️</div>
-    <div class="ltitle">Si Darma</div>
-    <div class="lsub">Sistem Informasi Dashboard Akuntabilitas Realisasi MBG Anggaran Wilayah Pekalongan<br><b style="color:var(--text2)">SPPG & KDMP Koperasi Desa Merah Putih</b><br>Memberi Tanpa Ragu,Mengabdi Dengan Ilmu</div>
+    <div class="ltitle">DARMA</div>
+    <div class="lsub">Dashboard Akurat Reporting Manajemen Aplikasi<br><b style="color:var(--text2)">SPPG dan KDMP Wilayah Pekalongan</b><br>Memberi Tanpa Ragu, Mengabdi Dengan Ilmu</div>
     <div class="linp"><i class="fas fa-user-tag"></i>
       <select id="lRole"><option value="">— Pilih Role —</option><option value="admin">⚙️ Admin / Koordinator</option><option value="petugas">🔍 Petugas Monitoring</option></select>
     </div>
@@ -418,7 +418,7 @@ textarea.fc{resize:vertical;min-height:56px;}
 <!-- ================= HEADER ================= -->
 <div id="hdr">
   <button class="hbtn" id="burger" onclick="toggleSB()" title="Menu"><i class="fas fa-bars"></i></button>
-  <div class="hlogo">🍽️<span>  Si Darma<small>Monitoring SPPG & KDMP Koperasi Desa Merah Putih</small></span></div>
+  <div class="hlogo">🍽️<span> DARMA<small>Dashboard Akurat Reporting Manajemen Aplikasi SPPG & KDMP Wilayah Pekalongan</small></span></div>
   <div class="huser"><strong id="hName">—</strong><span id="hRole">—</span></div>
   <button class="hbtn" id="usrBtn" onclick="openUsersModal()" title="Manajemen Pengguna" style="display:none"><i class="fas fa-users"></i></button>
   <button class="hbtn" onclick="toggleTheme()" id="themeBtn" title="Gelap/Terang"><i class="fas fa-moon"></i></button>
@@ -1162,7 +1162,7 @@ let markers = [];
 let pendingDel = null, dtCurrent = null, editingJenis = 'SPPG';
 let tempMarker = null, pickMode = false; // pin 📍 pemilihan koordinat unit di peta
 let FS = {jenis:'', hasil:'', kab:'', search:''};
-const LS_KEY = 'simon_mbg_v1';
+const LS_KEY = 'darma_mbg_v1';
 /* ============================================================
    API / SYNC LAYER  (Cloudflare D1 via Worker — fallback lokal)
    - API.mode = 'cloud' bila Worker /api terjangkau, else 'local'
@@ -1350,7 +1350,7 @@ function onFilterChange(){
   FS.hasil=document.getElementById('fdHasil').value;
   FS.kab=document.getElementById('fdKab').value;
   FS.search=document.getElementById('fdSearch').value;
-  renderMap();renderUnitList();
+  renderMap();renderUnitList();renderDash();
 }
 function clearFilters(){
   ['fdJenis','fdHasil','fdKab','fdSearch'].forEach(id=>document.getElementById(id).value='');
@@ -1508,20 +1508,21 @@ function delUser(id){
 ============================================================ */
 function renderAll(){renderMap();renderDash();renderUnitList();renderHist();refreshUnitSelect();}
 function renderDash(){
+  const list = filteredUnits();
   const dbBanner=document.getElementById('dashBanner');
   if(dbBanner)dbBanner.innerHTML=(API.mode==='cloud'&&CU&&CU.role==='admin'&&DB.units.length===0)?'<button class="btn bp bblk" style="margin-bottom:10px" onclick="loadSampleCloud()"><i class="fas fa-cloud-upload-alt"></i> Database cloud masih kosong — Muat Data Contoh</button>':'';
-  const s=DB.units.filter(u=>u.jenis==='SPPG').length;
-  const k=DB.units.filter(u=>u.jenis==='KDMP').length;
-  const oper=DB.units.filter(u=>u.status==='aktif').length;
+  const s=list.filter(u=>u.jenis==='SPPG').length;
+  const k=list.filter(u=>u.jenis==='KDMP').length;
+  const oper=list.filter(u=>u.status==='aktif').length;
   document.getElementById('stSPPG').textContent=s;
   document.getElementById('stKDMP').textContent=k;
   document.getElementById('stOper').textContent=oper;
-  document.getElementById('stMon').textContent=DB.monitoring.length;
+  document.getElementById('stMon').textContent=DB.monitoring.filter(m=>list.some(u=>u.id===m.unitId)).length;
 
   // hasil bars
   const cnt={baik:0,perbaikan:0,kritis:0,belum:0};
-  DB.units.forEach(u=>cnt[unitHasil(u)]++);
-  const tot=DB.units.length||1;
+  list.forEach(u=>cnt[unitHasil(u)]++);
+  const tot=list.length||1;
   document.getElementById('hasilBars').innerHTML=Object.keys(HASIL_META).map(h=>{
     const hm=HASIL_META[h];const pct=Math.round(cnt[h]/tot*100);
     return `<div class="hrow"><div class="hl">${hm.icon} ${hm.label}</div><div class="hbar-wrap"><div class="hbar" style="width:${Math.max(pct,2)}%;background:${hm.color}"></div></div><div class="hv">${cnt[h]}</div></div>`;
@@ -1529,7 +1530,7 @@ function renderDash(){
 
   // kabupaten bars
   const kabs=Object.entries(KABUPATEN).map(([kab])=>{
-    const us=DB.units.filter(u=>u.kab===kab);
+    const us=list.filter(u=>u.kab===kab);
     return {kab,n:us.length,mon:DB.monitoring.filter(m=>us.some(u=>u.id===m.unitId)).length};
   });
   const maxK=Math.max(1,...kabs.map(x=>x.n));
@@ -1542,7 +1543,7 @@ function renderDash(){
 
   // attention: kritis > perbaikan > belum (max 6)
   const rank={kritis:0,perbaikan:1,belum:2,baik:3};
-  const attn=DB.units.filter(u=>['kritis','perbaikan','belum'].includes(unitHasil(u)))
+  const attn=list.filter(u=>['kritis','perbaikan','belum'].includes(unitHasil(u)))
      .sort((a,b)=>rank[unitHasil(a)]-rank[unitHasil(b)]).slice(0,6);
   document.getElementById('attnList').innerHTML=attn.length?attn.map(u=>{
     const h=unitHasil(u);const m=lastMon(u.id);
@@ -1956,9 +1957,9 @@ function pdfHead(doc,title,subtitle){
   doc.setFillColor(200,16,46);doc.rect(0,0,w,20,'F');
   doc.setTextColor(255,255,255);
   doc.setFontSize(13);doc.setFont('helvetica','bold');
-  doc.text('SIMON-MBG',12,8.5);
+  doc.text('DARMA',12,8.5);
   doc.setFontSize(8.5);doc.setFont('helvetica','normal');
-  doc.text('Sistem Monitoring MBG - SPPG & KDMP Koperasi Desa Merah Putih',12,14.5);
+  doc.text('Dashboard Akurat Reporting Manajemen Aplikasi SPPG & KDMP Wilayah Pekalongan',12,14.5);
   doc.setFontSize(8);
   doc.text('Dicetak: '+new Date().toLocaleString('id-ID',{dateStyle:'full',timeStyle:'short'}),w-12,8.5,{align:'right'});
   doc.text('Wilayah: Pekalongan - Batang',w-12,14.5,{align:'right'});
@@ -1973,7 +1974,7 @@ function pdfFoot(doc){
   const n=doc.internal.getNumberOfPages(),w=doc.internal.pageSize.getWidth(),h=doc.internal.pageSize.getHeight();
   for(let i=1;i<=n;i++){
     doc.setPage(i);doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.setTextColor(140,140,140);
-    doc.text('SIMON-MBG - dokumen hasil monitoring',12,h-7);
+    doc.text('DARMA - dokumen hasil monitoring',12,h-7);
     doc.text('Halaman '+i+' dari '+n,w-12,h-7,{align:'right'});
   }
 }
@@ -2005,7 +2006,7 @@ function exportPdfMonitoring(){
     }
   });
   pdfFoot(doc);
-  doc.save('SIMON-MBG_Monitoring_'+new Date().toISOString().slice(0,10)+'.pdf');
+  doc.save('DARMA_Monitoring_'+new Date().toISOString().slice(0,10)+'.pdf');
   toast('📄 PDF riwayat monitoring terunduh');
 }
 function exportPdfUnits(){
@@ -2037,7 +2038,7 @@ function exportPdfUnits(){
     }
   });
   pdfFoot(doc);
-  doc.save('SIMON-MBG_MasterUnit_'+new Date().toISOString().slice(0,10)+'.pdf');
+  doc.save('DARMA_MasterUnit_'+new Date().toISOString().slice(0,10)+'.pdf');
   toast('📄 PDF master unit terunduh');
 }
 function exportPdfUnitDetail(id){
@@ -2076,7 +2077,7 @@ function exportPdfUnitDetail(id){
     });
   }else{doc.setFontSize(8);doc.setFont('helvetica','italic');doc.setTextColor(120,120,120);doc.text('Belum ada kunjungan monitoring untuk unit ini.',12,y+4);}
   pdfFoot(doc);
-  doc.save('SIMON-MBG_Profil_'+u.nama.replace(/[^\w\s]/g,'').replace(/\s+/g,'_').slice(0,30)+'.pdf');
+  doc.save('DARMA_Profil_'+u.nama.replace(/[^\w\s]/g,'').replace(/\s+/g,'_').slice(0,30)+'.pdf');
   toast('📄 PDF profil unit terunduh');
 }
 function exportPdfDash(){
@@ -2110,7 +2111,7 @@ function exportPdfDash(){
     });
   }else{doc.setFontSize(8);doc.setFont('helvetica','italic');doc.setTextColor(120);doc.text('Seluruh unit berstatus BAIK pada monitoring terakhir.',12,y+4);}
   pdfFoot(doc);
-  doc.save('SIMON-MBG_LaporanRingkasan_'+new Date().toISOString().slice(0,10)+'.pdf');
+  doc.save('DARMA_LaporanRingkasan_'+new Date().toISOString().slice(0,10)+'.pdf');
   toast('📄 Laporan ringkasan terunduh');
 }
 function exportXlsxUnit(id){
@@ -2123,7 +2124,7 @@ function exportXlsxUnit(id){
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(info),'Profil Unit');
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(ms.map(m=>({'Tanggal':m.tgl,'Petugas':m.petugas,'Kebersihan':ASPEK_META[m.kebersihan],'Menu & Gizi':ASPEK_META[m.gizi],'Distribusi':ASPEK_META[m.distribusi],'Dokumentasi':ASPEK_META[m.dok],'Hasil':HASIL_META[m.hasil].label,'Temuan':m.temuan||'','Rekomendasi':m.rekom||''}))),'Riwayat Monitoring');
-  XLSX.writeFile(wb,'SIMON-MBG_'+u.nama.replace(/[^\w\s]/g,'').replace(/\s+/g,'_').slice(0,30)+'.xlsx');
+  XLSX.writeFile(wb,'DARMA_'+u.nama.replace(/[^\w\s]/g,'').replace(/\s+/g,'_').slice(0,30)+'.xlsx');
   toast('📥 Excel unit terunduh');
 }
 function exportXlsx(mode,useFilters){
@@ -2157,13 +2158,13 @@ function exportXlsx(mode,useFilters){
       'HASIL':HASIL_META[m.hasil]?HASIL_META[m.hasil].label:m.hasil,'Temuan Lapangan':m.temuan||'','Rekomendasi':m.rekom||''};
   });
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(mrows),'Hasil Monitoring');
-  XLSX.writeFile(wb,`SIMON-MBG_${mode==='monitoring'?'monitoring':'lengkap'}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  XLSX.writeFile(wb,`DARMA_${mode==='monitoring'?'monitoring':'lengkap'}_${new Date().toISOString().slice(0,10)}.xlsx`);
   toast('📥 File Excel terunduh');
 }
 function exportJSON(){
   const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=`SIMON-MBG_backup_${new Date().toISOString().slice(0,10)}.json`;a.click();
+  a.download=`DARMA_backup_${new Date().toISOString().slice(0,10)}.json`;a.click();
   toast('📥 Backup JSON terunduh');
 }
 function importJSON(ev){
@@ -2244,7 +2245,7 @@ function buildKdmpPrintHtml(m,blank){
     h+=`<div class="hasil">Nilai Rata-rata: <b>${f.avg}</b> &nbsp;|&nbsp; Kategori: <b>${escP(f.kategori||'')}</b> &nbsp;|&nbsp; Status Monitoring: <b>${escP(hl)}</b></div>`;
   }
   h+=`<div class="ttd"><div class="b">Mengetahui,<br>Petugas Survei</div><div class="b">${u?escP(u.kab):'...........'}, ${tgl?fmtD(tgl):'...............'}<br>Responden / Pengurus KDMP</div></div>`;
-  h+=`<div class="foot">SIMON-MBG &mdash; Kuesioner Monev KDMP/KKMP &middot; dicetak ${new Date().toLocaleString('id-ID')}</div>`;
+  h+=`<div class="foot">DARMA &mdash; Kuesioner Monev KDMP/KKMP &middot; dicetak ${new Date().toLocaleString('id-ID')}</div>`;
   return h;
 }
 function buildSppgPrintHtml(m,blank){
@@ -2271,7 +2272,7 @@ function buildSppgPrintHtml(m,blank){
   });
   if(!blank&&hl){h+=`<div class="hasil">Status Monitoring: <b>${escP(hl)}</b></div>`;}
   h+=`<div class="ttd"><div class="b">Mengetahui,<br>Petugas Survei</div><div class="b">${u?escP(u.kab):'...........'}, ${tgl?fmtD(tgl):'...............'}<br>Responden SPPG</div></div>`;
-  h+=`<div class="foot">SIMON-MBG &mdash; Form Survei Penyaluran MBG (SPPG) &middot; dicetak ${new Date().toLocaleString('id-ID')}</div>`;
+  h+=`<div class="foot">DARMA &mdash; Form Survei Penyaluran MBG (SPPG) &middot; dicetak ${new Date().toLocaleString('id-ID')}</div>`;
   return h;
 }
 function pdfSafe(s){s=String(s==null?'':s).replace(/[\u2013\u2014]/g,'-').replace(/[\u2018\u2019\u201A\u201B]/g,"'").replace(/[\u201C\u201D\u201E]/g,'"').replace(/\u2192/g,'->').replace(/\u2026/g,'...');s=stripEmoji(s);return s.replace(/[^A-Za-z0-9 \-_.,&()/:%+*=#@!?<>"']/g,'').replace(/\s+/g,' ').trim();}
@@ -2365,7 +2366,7 @@ function generateFormPdf(jenis,filled,rec){
     if(filled&&rec&&rec.hasil){y=formTitle(doc,'Status Monitoring',y,PH);doc.autoTable({startY:y,body:[[{content:'Status: '+(HASIL_META[rec.hasil]?HASIL_META[rec.hasil].label:rec.hasil),styles:{fontStyle:'bold',fontSize:10,halign:'center',textColor:[200,16,46]}}]],theme:'grid'});}
   }
   pdfFoot(doc);
-  doc.save('SIMON-MBG_Form_'+formType+'_'+(filled?'Terisi':'Kosong')+'_'+(tgl||new Date().toISOString().slice(0,10))+'.pdf');
+  doc.save('DARMA_Form_'+formType+'_'+(filled?'Terisi':'Kosong')+'_'+(tgl||new Date().toISOString().slice(0,10))+'.pdf');
   toast('PDF form '+formType+' terunduh');
 }
 /* ===== Generator Excel form (SheetJS) — file .xlsx persis struktur form ===== */
@@ -2432,7 +2433,7 @@ function generateFormXlsx(jenis,filled,rec){
   ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:5}},{s:{r:1,c:0},e:{r:1,c:5}}];
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Form '+formType);
-  XLSX.writeFile(wb,'SIMON-MBG_Form_'+formType+'_'+(filled?'Terisi':'Kosong')+'.xlsx');
+  XLSX.writeFile(wb,'DARMA_Form_'+formType+'_'+(filled?'Terisi':'Kosong')+'.xlsx');
   toast('File Excel form '+formType+' terunduh');
 }
 function cetakRekam(mode){if(!currentRekamJenis){toast('Pilih unit dulu untuk mencetak form','e');return;}const rec=recFormData(currentRekamJenis,mode);if(!rec)return;generateFormPdf(currentRekamJenis,mode==='isi',rec);}
@@ -2449,5 +2450,5 @@ function cetakMon(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;cons
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2818da30f0c4717',t:'MTc4NjIyMzkwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2818da30f0c4717',t:'MTc4NjIyMzkwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28578c53ffa3de9',t:'MTc4NjI2NDk5MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
