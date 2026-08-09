@@ -1,0 +1,14 @@
+name = "simon-mbg"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Aset statis (index.html) — otomatis dilayani Worker, /api/* diteruskan ke worker.js
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+# Database Cloudflare D1 — GANTI database_id dengan ID dari `wrangler d1 create simon-mbg`
+[[d1_databases]]
+binding = "DB"
+database_name = "simon-mbg"
+database_id = "9f86b460-9d78-43fe-b1fb-5bdd3180be36"
