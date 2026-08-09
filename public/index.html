@@ -1387,26 +1387,41 @@ async function loadBoundaries() {
   };
 
   try {
-    const res = await fetch('https://raw.githubusercontent.com/anshori/indonesia-geojson/master/regency/33.json');
+    // Menggunakan sumber GeoJSON alternatif yang lebih stabil
+    const res = await fetch('https://raw.githubusercontent.com/superpikar/indonesia-geojson/master/indonesia-regencies.json');
     const data = await res.json();
 
     L.geoJSON(data, {
-      filter: (feat) => regionMeta[feat.properties.id],
-      style: (feat) => ({
-        fillColor: regionMeta[feat.properties.id].color,
-        fillOpacity: 0.12,
-        color: regionMeta[feat.properties.id].color,
-        weight: 2,
-        dashArray: '4, 4'
-      }),
+      filter: (feat) => {
+        // Mencocokkan ID kabupaten dari berbagai kemungkinan nama properti
+        const id = feat.properties.id || feat.properties.code || feat.properties.KODE_KAB;
+        return regionMeta[String(id)];
+      },
+      style: (feat) => {
+        const id = feat.properties.id || feat.properties.code || feat.properties.KODE_KAB;
+        return {
+          fillColor: regionMeta[String(id)].color,
+          fillOpacity: 0.15,
+          color: regionMeta[String(id)].color,
+          weight: 2,
+          dashArray: '5, 5'
+        };
+      },
       onEachFeature: (feat, layer) => {
-        layer.bindTooltip(regionMeta[feat.properties.id].name, { sticky: true, opacity: 0.9 });
-        layer.on('mouseover', function() { this.setStyle({ fillOpacity: 0.25, weight: 3 }); });
-        layer.on('mouseout', function() { this.setStyle({ fillOpacity: 0.12, weight: 2 }); });
+        const id = feat.properties.id || feat.properties.code || feat.properties.KODE_KAB;
+        const name = regionMeta[String(id)].name;
+        layer.bindTooltip(name, { sticky: true, direction: 'top' });
+        layer.on('mouseover', function() { this.setStyle({ fillOpacity: 0.3, weight: 3 }); });
+        layer.on('mouseout', function() { this.setStyle({ fillOpacity: 0.15, weight: 2 }); });
       }
     }).addTo(boundariesLayer);
+    
+    // Pastikan batas wilayah berada di bawah marker
+    boundariesLayer.getLayers().forEach(l => { if(l.bringToBack) l.bringToBack(); });
+    console.log('Batas wilayah berhasil dimuat');
   } catch (e) {
-    console.warn('Gagal memuat batas wilayah:', e);
+    console.error('Gagal memuat batas wilayah:', e);
+    toast('Gagal memuat peta batas wilayah', 'e');
   }
 }
 
@@ -2534,5 +2549,5 @@ function cetakMon(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;cons
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2818da30f0c4717',t:'MTc4NjIyMzkwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a285c67d5892fda0',t:'MTc4NjI2ODE3NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2818da30f0c4717',t:'MTc4NjIyMzkwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a285cc6529c68193',t:'MTc4NjI2ODQxNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
