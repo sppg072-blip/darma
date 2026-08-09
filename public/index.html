@@ -1048,23 +1048,46 @@ function renderRekamForm(jenis,rec){
     let h=`<div class="qmeta"><b>Kuesioner Monev KDMP/KKMP "Bangunan Permanen".</b><br>${SKALA_KDMP}</div>`;
     
     // --- Bagian A & B: Identitas Tambahan ---
-    h+=`<div class="qbagian kdmp">A. Identitas Koperasi & Responden</div>`;
+    h+=`<div class="qbagian kdmp">A. Identitas Koperasi</div>`;
     h+=`<div class="frow">
           <div class="fg"><label class="fl">NIB Koperasi</label><input type="text" id="ff_nib" class="fc" value="${esc(f.nib||'')}" placeholder="Nomor Induk Berusaha"/></div>
           <div class="fg"><label class="fl">NPWP Koperasi</label>
             <div class="qchips" data-fid="npwp" data-multi="0">
-              <button type="button" class="qchip ${f.npwp==='Ya'?'on':''}" data-opt="Ya" onclick="pickChip(this,false)">Ada</button>
+              <button type="button" class="qchip ${f.npwp==='Ya'?'on':''}" data-opt="Ya" onclick="pickChip(this,false)">Ya</button>
               <button type="button" class="qchip ${f.npwp==='Tidak'?'on':''}" data-opt="Tidak" onclick="pickChip(this,false)">Tidak</button>
             </div>
           </div>
         </div>`;
+    h+=`<div class="frow">
+          <div class="fg"><label class="fl">Bidang Usaha</label>
+            <select id="ff_bidang_usaha" class="fc">
+              <option value="">— Pilih —</option>
+              <option ${f.bidang_usaha==='Pengadaan Sembako'?'selected':''}>Pengadaan Sembako</option>
+              <option ${f.bidang_usaha==='Lainnya'?'selected':''}>Lainnya</option>
+            </select>
+          </div>
+          <div class="fg"><label class="fl">Status Pembangunan</label>
+            <select id="ff_status_bangun" class="fc">
+              <option value="">— Pilih —</option>
+              <option ${f.status_bangun==='Belum Dibangun'?'selected':''}>Belum Dibangun</option>
+              <option ${f.status_bangun==='Sedang Dibangun'?'selected':''}>Sedang Dibangun</option>
+              <option ${f.status_bangun==='Bangunan Permanen'?'selected':''}>Bangunan Permanen</option>
+            </select>
+          </div>
+        </div>`;
+    h+=`<div class="frow">
+          <div class="fg"><label class="fl">Provinsi</label><input type="text" id="ff_prov" class="fc" value="${esc(f.prov||'Jawa Tengah')}"/></div>
+          <div class="fg"><label class="fl">Desa/Kelurahan</label><input type="text" id="ff_desa" class="fc" value="${esc(f.desa||(rec&&rec.unitId?unitById(rec.unitId).desa:''))}"/></div>
+        </div>`;
+
+    h+=`<div class="qbagian kdmp">B. Identitas Responden</div>`;
     h+=`<div class="fg"><label class="fl">Nama Responden</label><input type="text" id="ff_resp_nama" class="fc" value="${esc(f.resp_nama||'')}" placeholder="Nama narasumber"/></div>`;
     h+=`<div class="frow">
           <div class="fg"><label class="fl">No. HP Responden</label><input type="text" id="ff_resp_hp" class="fc" value="${esc(f.resp_hp||'')}" placeholder="08..."/></div>
           <div class="fg"><label class="fl">Jenis Responden</label>
             <select id="ff_resp_jenis" class="fc">
               <option value="">— Pilih —</option>
-              <option ${f.resp_jenis==='Manajer/Pengurus'?'selected':''}>Manajer/Pengurus</option>
+              <option ${f.resp_jenis==='Manajer/Pengurus Koperasi'?'selected':''}>Manajer/Pengurus Koperasi</option>
               <option ${f.resp_jenis==='Dinas Koperasi'?'selected':''}>Dinas Koperasi</option>
             </select>
           </div>
@@ -1136,6 +1159,11 @@ function calcRekam(){
 function collectKDMP(){
   const nib = document.getElementById('ff_nib').value;
   const npwp = document.querySelector('.qchips[data-fid="npwp"] .qchip.on')?.dataset.opt || '';
+  const bidang_usaha = document.getElementById('ff_bidang_usaha').value;
+  const status_bangun = document.getElementById('ff_status_bangun').value;
+  const prov = document.getElementById('ff_prov').value;
+  const desa = document.getElementById('ff_desa').value;
+
   const resp_nama = document.getElementById('ff_resp_nama').value;
   const resp_hp = document.getElementById('ff_resp_hp').value;
   const resp_jenis = document.getElementById('ff_resp_jenis').value;
@@ -1149,7 +1177,7 @@ function collectKDMP(){
   const naker = document.getElementById('ff_num_naker').value;
   const omset = document.getElementById('ff_num_omset').value;
 
-  return {nib, npwp, resp_nama, resp_hp, resp_jenis, sections:sections, compliance:compliance, avg:ans.length?(+avg.toFixed(2)):null, kategori:ans.length?k.label:null, hasil:k.hasil, terjawab:ans.length, num_pengurus:pengurus, num_naker:naker, num_omset:omset};
+  return {nib, npwp, bidang_usaha, status_bangun, prov, desa, resp_nama, resp_hp, resp_jenis, sections:sections, compliance:compliance, avg:ans.length?(+avg.toFixed(2)):null, kategori:ans.length?k.label:null, hasil:k.hasil, terjawab:ans.length, num_pengurus:pengurus, num_naker:naker, num_omset:omset};
 }
 function collectGeneric(formDef){
   const data={};
@@ -2494,10 +2522,12 @@ function generateFormPdf(jenis,filled,rec){
   const idRows=isK
     ? [
         ['Nama KDMP/KKMP',u?u.nama:'','Tanggal Survei',tgl?fmtD(tgl):''],
-        ['Kabupaten/Kota',u?u.kab:'','Kecamatan',u?u.kec:''],
-        ['Desa/Kelurahan',u?u.desa:'','NIB Koperasi',f.nib||''],
-        ['NPWP Koperasi',f.npwp||'','Nama Responden',f.resp_nama||''],
-        ['No. HP Responden',f.resp_hp||'','Jenis Responden',f.resp_jenis||'']
+        ['NIB Koperasi',f.nib||'','NPWP Koperasi',f.npwp||''],
+        ['Bidang Usaha',f.bidang_usaha||'','Status Bangun',f.status_bangun||''],
+        ['Provinsi',f.prov||'','Kabupaten/Kota',u?u.kab:''],
+        ['Desa/Kelurahan',f.desa||'','Kecamatan',u?u.kec:''],
+        ['Nama Responden',f.resp_nama||'','No. HP Responden',f.resp_hp||''],
+        ['Jenis Responden',f.resp_jenis||'','','']
       ]
     : [['Nama SPPG',u?u.nama:'','Tanggal Survei',tgl?fmtD(tgl):''],['Kabupaten/Kota',u?u.kab:'','Petugas Survei',petugas],['Nama Responden',(f.fields&&(f.fields.sp107||f.fields.nk101))||'','Jabatan/Posisi',(f.fields&&(f.fields.sp108||f.fields.nk102))||'']];
   doc.autoTable({startY:y,
@@ -2652,5 +2682,5 @@ function cetakMon(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;cons
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2818da30f0c4717',t:'MTc4NjIyMzkwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a285d5928f8bff91',t:'MTc4NjI2ODc5Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2818da30f0c4717',t:'MTc4NjIyMzkwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a285d5928f8bff91',t:'MTc4NjI2ODc5Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a286dbf0aa8e0bfb',t:'MTc4NjI3OTUzOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
