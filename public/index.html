@@ -829,70 +829,71 @@ function kategoriDariSkor(avg){for(const k of KATEGORI_KDMP){if(avg>=k.min)retur
 function kdmpColor(hasil){return hasil==='baik'?'#16A34A':hasil==='perbaikan'?'#D97706':'#B91C1C';}
 function kdmpAc(avg){const v=parseFloat(avg);if(isNaN(v))return 'belum';if(v>=2.51)return 'baik';if(v>=1.76)return 'perlu';return 'tidak';}
 
-/* ---- KDMP: 8 bagian penilaian skala (Juknis Monev KDMP/KKMP) ---- */
+/* ---- KDMP: 8 bagian penilaian skala (Juknis Monev KDMP/KKMP sesuai dokumen) ---- */
 const FORM_KDMP=[
   {kode:'I',judul:'Gerai',items:[
-    'Gerai telah beroperasi aktif & berjalan sesuai rencana yang ditetapkan.',
+    'Gerai telah beroperasi secara aktif dan berjalan sesuai rencana yang telah ditetapkan.',
     'Lokasi gerai mudah dijangkau masyarakat.',
     'Barang/jasa yang dijual sesuai kebutuhan masyarakat.',
-    'Harga barang kompetitif.',
-    'Ketersediaan barang mencukupi kebutuhan masyarakat.'
+    'Harga Barang Kompetitif.',
+    'Ketersediaan barang/jasa mencukupi kebutuhan masyarakat.'
   ]},
   {kode:'II',judul:'Gudang',items:[
     'Gudang tersedia dan digunakan.',
-    'Kondisi bangunan gudang layak (bebas bocor/lembap).',
-    'Penyimpanan barang tertata dengan baik & higienis.',
-    'Gudang memiliki sistem keamanan yang memadai (APAR, gembok, CCTV).',
-    'Barang mudah ditelusuri dan ditemukan (bin card/denah).'
+    'Kondisi bangunan gudang layak.',
+    'Penyimpanan barang tertata dengan baik.',
+    'Gudang memiliki sistem keamanan yang memadai.',
+    'Barang mudah ditelusuri dan ditemukan.'
   ]},
   {kode:'III',judul:'Sarana & Prasarana',items:[
     'Ketersediaan kendaraan operasional memadai.',
     'Kondisi kendaraan masih layak digunakan.',
     'Peralatan operasional mendukung kegiatan koperasi.',
-    'Sarana dimanfaatkan secara optimal (tidak idle).',
+    'Sarana dimanfaatkan secara optimal.',
     'Pemeliharaan sarana dilakukan secara rutin.'
   ]},
   {kode:'IV',judul:'Kepengurusan',items:[
-    'Struktur organisasi jelas (SK pengurus & tupoksi).',
-    'Pengurus menjalankan tugas sesuai fungsi (tidak one-man show).',
-    'Koordinasi antar pengurus berjalan baik (rapat rutin).',
-    'Pengurus memberikan SOP & laporan keuangan transparan.',
+    'Struktur organisasi jelas.',
+    'Pengurus menjalankan tugas sesuai fungsi.',
+    'Koordinasi antar pengurus berjalan baik.',
+    'Pengurus memberikan SOP dan keuangan secara transparan.',
     'Pengurus memiliki kompetensi mengelola koperasi.'
   ]},
   {kode:'V',judul:'Persediaan',items:[
-    'Stok barang selalu tersedia (tidak out-of-stock).',
+    'Stok barang selalu tersedia.',
     'Pencatatan persediaan dilakukan dengan baik.',
-    'Jumlah stok fisik sesuai dengan pencatatan (stock opname).',
-    'Barang tersimpan dengan baik (terlindung dari rusak/kedaluwarsa).',
-    'Pengelolaan stok sudah efektif (turnover & reorder point).'
+    'Jumlah stok sesuai dengan pencatatan.',
+    'Barang tersimpan dengan baik.',
+    'Pengelolaan stok sudah efektif.'
   ]},
   {kode:'VI',judul:'Lahan',items:[
-    'Lahan yang dimiliki memadai untuk operasional.',
-    'Status kepemilikan lahan jelas (SHM/HGB/TKD/PKS bersih sengketa).',
-    'Lahan mendukung pengembangan usaha ke depan.'
+    'Lahan yang dimiliki memadai dan optimal untuk operasional.',
+    'Status kepemilikan lahan jelas.',
+    'Lahan mendukung pengembangan usaha.'
   ]},
-  {kode:'VII',judul:'Tata Kelola',items:[
-    'KDKMP dikelola sesuai ketentuan (operasional rutin, sarpras tersedia).',
-    'Pengurus melaksanakan tugas secara efektif & akuntabel.',
-    'KDKMP menyampaikan informasi & laporan keuangan ke Dinas Koperasi berkala.',
-    'Koordinasi antara pengurus & Dinas Koperasi berjalan baik.',
+  {kode:'VII',judul:'Tata Kelola (Perspektif Dinas)',items:[
+    'KDKMP dikelola sesuai dengan ketentuan yang berlaku (operasional rutin, sarpras tersedia).',
+    'Pengurus melaksanakan tugas secara efektif dan akuntabel.',
+    'KDKMP menyampaikan informasi dan laporan keuangan kepada Dinas Koperasi secara berkala.',
+    'Koordinasi antara pengurus dan Dinas Koperasi berjalan dengan baik.',
     'Operasional KDKMP berjalan sesuai tujuan pembentukannya.'
   ]},
-  {kode:'VIII',judul:'Manfaat',items:[
+  {kode:'VIII',judul:'Dampak',items:[
     'Keberadaan KDKMP berkontribusi terhadap penguatan ekonomi desa.',
-    'KDKMP memudahkan akses masyarakat terhadap barang/jasa/layanan koperasi.',
-    'KDKMP mendukung pengembangan usaha masyarakat & pelaku UMKM desa.',
+    'KDKMP memudahkan akses masyarakat terhadap barang, jasa dan/atau layanan usaha koperasi.',
+    'KDKMP mendukung pengembangan usaha masyarakat dan pelaku UMKM di desa.',
     'KDKMP menciptakan peluang ekonomi atau lapangan kerja di desa.',
-    'Keberadaan KDKMP memberi manfaat nyata & layak dikembangkan.'
+    'Keberadaan KDKMP memberikan manfaat yang nyata bagi masyarakat dan layak dikembangkan.'
   ]}
 ];
 /* ---- KDMP: Kepatuhan Regulasi & Akuntabilitas (Ya/Tidak) ---- */
 const COMPLIANCE_KDMP=[
-  'Tersedia dokumen kontrak sebelum pembangunan.',
+  'Tersedia dokumen kontrak ketika sebelum pembangunan.',
   'Seluruh tagihan kontrak perencanaan/pembangunan sudah dibayarkan.',
-  'Gerai sudah dilengkapi sarpras (meja kasir, rak persediaan, CCTV, APAR).',
-  'Gerai sudah dilengkapi kendaraan (motor listrik & truk).',
-  'Tersedia dokumen BAST pembangunan gerai/gudang yang sudah ditandatangani.'
+  'Gerai sudah dilengkapi sarana prasarana (meja kasir, rak persediaan, CCTV dan APAR).',
+  'Gerai sudah dilengkapi kendaraan (motor listrik dan truk).',
+  'Tersedia dokumen BAST pembangunan gerai/gudang yang sudah ditandatangani.',
+  'Dokumen BAST berisi lengkap: Kode desa, NIK Koperasi, Jenis Aset, dan Nilai Rupiah Aset.'
 ];
 
 /* ---- SPPG: Form Survei (sheet "SPPG" - 4 bagian, 33 butir) ---- */
@@ -1045,6 +1046,30 @@ function renderRekamForm(jenis,rec){
     if(tag)tag.textContent=' · KDMP (Kuesioner Juknis)';
     const secs=f.sections||[], comp=f.compliance||[];
     let h=`<div class="qmeta"><b>Kuesioner Monev KDMP/KKMP "Bangunan Permanen".</b><br>${SKALA_KDMP}</div>`;
+    
+    // --- Bagian A & B: Identitas Tambahan ---
+    h+=`<div class="qbagian kdmp">A. Identitas Koperasi & Responden</div>`;
+    h+=`<div class="frow">
+          <div class="fg"><label class="fl">NIB Koperasi</label><input type="text" id="ff_nib" class="fc" value="${esc(f.nib||'')}" placeholder="Nomor Induk Berusaha"/></div>
+          <div class="fg"><label class="fl">NPWP Koperasi</label>
+            <div class="qchips" data-fid="npwp" data-multi="0">
+              <button type="button" class="qchip ${f.npwp==='Ya'?'on':''}" data-opt="Ya" onclick="pickChip(this,false)">Ada</button>
+              <button type="button" class="qchip ${f.npwp==='Tidak'?'on':''}" data-opt="Tidak" onclick="pickChip(this,false)">Tidak</button>
+            </div>
+          </div>
+        </div>`;
+    h+=`<div class="fg"><label class="fl">Nama Responden</label><input type="text" id="ff_resp_nama" class="fc" value="${esc(f.resp_nama||'')}" placeholder="Nama narasumber"/></div>`;
+    h+=`<div class="frow">
+          <div class="fg"><label class="fl">No. HP Responden</label><input type="text" id="ff_resp_hp" class="fc" value="${esc(f.resp_hp||'')}" placeholder="08..."/></div>
+          <div class="fg"><label class="fl">Jenis Responden</label>
+            <select id="ff_resp_jenis" class="fc">
+              <option value="">— Pilih —</option>
+              <option ${f.resp_jenis==='Manajer/Pengurus'?'selected':''}>Manajer/Pengurus</option>
+              <option ${f.resp_jenis==='Dinas Koperasi'?'selected':''}>Dinas Koperasi</option>
+            </select>
+          </div>
+        </div>`;
+
     FORM_KDMP.forEach((sec,si)=>{
       h+=`<div class="qbagian kdmp">${sec.kode}. ${esc(sec.judul)}</div>`;
       const scores=(secs[si]&&secs[si].scores)||[];
@@ -1059,6 +1084,10 @@ function renderRekamForm(jenis,rec){
       h+=`<div class="qyn"><div class="qyn-txt">${ci+1}. ${esc(c)}</div>`+`<button type="button" class="qyn-btn ${sel==='ya'?'on':''}" data-ci="${ci}" data-j="ya" onclick="pickYN(this)">Ya</button>`+`<button type="button" class="qyn-btn ${sel==='tidak'?'on':''}" data-ci="${ci}" data-j="tidak" onclick="pickYN(this)">Tidak</button></div>`;
     });
     h+=`<div class="qscore-sum"><div><div class="qs-n" id="qsNum">—</div><div class="qs-l">Skor Rata-rata (maks 4)</div></div><div id="qsKat" style="font-size:11px;font-weight:800;text-align:right;color:var(--text3)">Isi butir penilaian</div></div>`;
+    h+=`<div class="qbagian kdmp">Informasi Tambahan <small>(Numerik)</small></div>`;
+    h+=`<div class="fg"><label class="fl">Jumlah Pengurus Koperasi (Orang)</label><input type="number" id="ff_num_pengurus" class="fc" placeholder="Contoh: 5"/></div>`;
+    h+=`<div class="fg"><label class="fl">Tenaga Kerja Pembangunan (Orang)</label><input type="number" id="ff_num_naker" class="fc" placeholder="Contoh: 12"/></div>`;
+    h+=`<div class="fg"><label class="fl">Perkiraan Omset Bulanan (Rp)</label><input type="number" id="ff_num_omset" class="fc" placeholder="Contoh: 50000000"/></div>`;
     root.innerHTML='<div class="qkues kdmp">'+h+'</div>';
     calcRekam();
     return;
@@ -1105,11 +1134,22 @@ function calcRekam(){
   return {hasil:getVal('rHasilManual')};
 }
 function collectKDMP(){
+  const nib = document.getElementById('ff_nib').value;
+  const npwp = document.querySelector('.qchips[data-fid="npwp"] .qchip.on')?.dataset.opt || '';
+  const resp_nama = document.getElementById('ff_resp_nama').value;
+  const resp_hp = document.getElementById('ff_resp_hp').value;
+  const resp_jenis = document.getElementById('ff_resp_jenis').value;
+
   const sections=FORM_KDMP.map((sec,si)=>{const scores=sec.items.map((it,ii)=>{const on=document.querySelector('#rekamForm .qscore-btn.on[data-si="'+si+'"][data-ii="'+ii+'"]');return on?parseInt(on.dataset.v):0;});return {kode:sec.kode,judul:sec.judul,scores:scores};});
   const compliance=COMPLIANCE_KDMP.map((c,ci)=>{const on=document.querySelector('#rekamForm .qyn-btn.on[data-ci="'+ci+'"]');return on?on.dataset.j:null;});
   const ans=[].concat.apply([],sections.map(s=>s.scores)).filter(v=>v>0);
   const avg=ans.length?ans.reduce((a,b)=>a+b,0)/ans.length:0;const k=kategoriDariSkor(avg);
-  return {sections:sections,compliance:compliance,avg:ans.length?(+avg.toFixed(2)):null,kategori:ans.length?k.label:null,hasil:k.hasil,terjawab:ans.length};
+  
+  const pengurus = document.getElementById('ff_num_pengurus').value;
+  const naker = document.getElementById('ff_num_naker').value;
+  const omset = document.getElementById('ff_num_omset').value;
+
+  return {nib, npwp, resp_nama, resp_hp, resp_jenis, sections:sections, compliance:compliance, avg:ans.length?(+avg.toFixed(2)):null, kategori:ans.length?k.label:null, hasil:k.hasil, terjawab:ans.length, num_pengurus:pengurus, num_naker:naker, num_omset:omset};
 }
 function collectGeneric(formDef){
   const data={};
@@ -2452,7 +2492,13 @@ function generateFormPdf(jenis,filled,rec){
   let y=pdfHead(doc,isK?'KUESIONER MONEV KDMP/KKMP':(formType==='NAKER'?'DAFTAR PERTANYAAN UNTUK TENAGA KERJA':'DAFTAR PERTANYAAN UNTUK SPPG'),
     isK?'Monev Koperasi Desa/Kelurahan Merah Putih (KDMP/KKMP) - Bangunan Permanen':((FORMS[formType]||{}).purpose||'')+(filled?'':' (FORM KOSONG)'));
   const idRows=isK
-    ? [['Nama KDMP/KKMP',u?u.nama:'','Tanggal Survei',tgl?fmtD(tgl):''],['Kabupaten/Kota',u?u.kab:'','Kecamatan',u?u.kec:''],['Desa/Kelurahan',u?u.desa:'','Petugas Survei',petugas]]
+    ? [
+        ['Nama KDMP/KKMP',u?u.nama:'','Tanggal Survei',tgl?fmtD(tgl):''],
+        ['Kabupaten/Kota',u?u.kab:'','Kecamatan',u?u.kec:''],
+        ['Desa/Kelurahan',u?u.desa:'','NIB Koperasi',f.nib||''],
+        ['NPWP Koperasi',f.npwp||'','Nama Responden',f.resp_nama||''],
+        ['No. HP Responden',f.resp_hp||'','Jenis Responden',f.resp_jenis||'']
+      ]
     : [['Nama SPPG',u?u.nama:'','Tanggal Survei',tgl?fmtD(tgl):''],['Kabupaten/Kota',u?u.kab:'','Petugas Survei',petugas],['Nama Responden',(f.fields&&(f.fields.sp107||f.fields.nk101))||'','Jabatan/Posisi',(f.fields&&(f.fields.sp108||f.fields.nk102))||'']];
   doc.autoTable({startY:y,
     body:idRows.map(r=>[{content:pdfSafe(r[0]),styles:{fontStyle:'bold',fillColor:[244,244,244]}},{content:pdfSafe(r[1])},{content:pdfSafe(r[2]),styles:{fontStyle:'bold',fillColor:[244,244,244]}},{content:pdfSafe(r[3])}]).concat([[{content:'Alamat',styles:{fontStyle:'bold',fillColor:[244,244,244]}},{content:pdfSafe(u?u.alamat:''),colSpan:3}]]),
@@ -2486,7 +2532,22 @@ function generateFormPdf(jenis,filled,rec){
     y=doc.lastAutoTable.finalY+5;
     if(filled&&f.avg!=null){
       doc.autoTable({startY:y,body:[[{content:'Nilai Rata-rata: '+f.avg,styles:{fontStyle:'bold',fontSize:10,halign:'center'}},{content:'Kategori: '+(f.kategori||''),styles:{fontStyle:'bold',fontSize:10,halign:'center'}},{content:'Status: '+(HASIL_META[f.hasil]?HASIL_META[f.hasil].label:''),styles:{fontStyle:'bold',fontSize:10,halign:'center',textColor:[200,16,46]}}]],theme:'grid',styles:{fillColor:[254,242,242]}});
+      y=doc.lastAutoTable.finalY+5;
     }
+    // Informasi Tambahan
+    doc.autoTable({startY:y, head:[['Data Operasional Koperasi','Nilai']], body:[
+      ['Jumlah Pengurus Koperasi', (f.num_pengurus||'0') + ' Orang'],
+      ['Tenaga Kerja Pembangunan', (f.num_naker||'0') + ' Orang'],
+      ['Perkiraan Omset Bulanan', 'Rp ' + fmtN(f.num_omset||0)]
+    ], styles:{fontSize:8}, headStyles:{fillColor:[80,80,80]}});
+    y=doc.lastAutoTable.finalY+10;
+    // Tanda Tangan
+    doc.setFontSize(10); doc.setFont('helvetica','normal');
+    doc.text('Mengetahui,', 30, y); doc.text((u?u.kab:'............') + ', ' + (tgl?fmtD(tgl):'........'), 130, y);
+    y+=5;
+    doc.text('Petugas Monitoring,', 30, y); doc.text('Responden/Pengurus,', 130, y);
+    y+=20;
+    doc.text('( ' + (petugas || '..........................') + ' )', 30, y); doc.text('( ' + (f.resp_nama || '..........................') + ' )', 130, y);
   }else{
     const formDef=FORMS[formType]||FORM_SPPG;const fields=f.fields||{};
     formDef.sections.forEach(sec=>{
@@ -2531,9 +2592,11 @@ function generateFormXlsx(jenis,filled,rec){
   aoa.push([isK?'KUESIONER MONEV KDMP/KKMP':((FORMS[formType]||{}).title||'FORM')]);
   aoa.push([(FORMS[formType]||{}).purpose||'']);
   aoa.push([]);
-  aoa.push(['Nama SPPG',u?u.nama:'','Tanggal Survei',tgl?fmtD(tgl):'']);
-  aoa.push(['Kabupaten/Kota',u?u.kab:'','Petugas Survei',petugas]);
-  aoa.push(['Alamat',u?u.alamat:'','','','']);
+  aoa.push(['Nama KDMP/KKMP',u?u.nama:'','Tanggal Survei',tgl?fmtD(tgl):'']);
+  aoa.push(['Kabupaten/Kota',u?u.kab:'','Kecamatan',u?u.kec:'']);
+  aoa.push(['Desa/Kelurahan',u?u.desa:'','NIB Koperasi',f.nib||'']);
+  aoa.push(['NPWP Koperasi',f.npwp||'','Nama Responden',f.resp_nama||'']);
+  aoa.push(['No. HP Responden',f.resp_hp||'','Jenis Responden',f.resp_jenis||'']);
   aoa.push([]);
   if(isK){
     aoa.push(['SKALA: 1=Sangat Tidak Baik, 2=Kurang Baik, 3=Baik, 4=Sangat Baik (beri tanda X)','','','','','']);
