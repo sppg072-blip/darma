@@ -11,4 +11,4 @@ binding = "ASSETS"
 [[d1_databases]]
 binding = "DB"
 database_name = "simon-mbg"
-database_id = "9f86b460-9d78-43fe-b1fb-5bdd3180be36"
+database_id = "7ff329a0-fb26-40e5-b0f9-763a080e83c0"
