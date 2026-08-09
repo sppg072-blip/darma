@@ -897,49 +897,59 @@ const COMPLIANCE_KDMP=[
   'Dokumen BAST berisi lengkap: Kode desa, NIK Koperasi, Jenis Aset, dan Nilai Rupiah Aset.'
 ];
 
-/* ---- SPPG: Form Survei (sheet "SPPG" - sesuai Google Sheets) ---- */
-const FORM_SPPG={key:'SPPG',title:'DAFTAR PERTANYAAN SURVEY PENYALURAN MBG A',purpose:'Mengetahui Perkembangan Operasional dalam Pengelolaan SPPG',dur:'45 menit',sections:[
-  {title:'Proses Bisnis SPPG',fields:[
-    {id:'sp001',label:'Sejak kapan SPPG beroperasi?',type:'t'},
-    {id:'sp002',label:'Berapa porsi yang disalurkan per hari?',type:'n',unit:'porsi'},
-    {id:'sp003',label:'Berapa jumlah penerima manfaat per kelompok (siswa/ibu hamil/menyusui/balita)?',type:'t'},
-    {id:'sp004',label:'Bagaimana jadwal kegiatan penyediaan MBG?',type:'t'},
-    {id:'sp005',label:'Berapa waktu dan biaya yang dibutuhkan dari pendaftaran SPPG hingga operasional?',type:'t'},
-    {id:'sp006',label:'Apa saja biaya yang ditarik oleh Yayasan?',type:'t'},
-    {id:'sp007',label:'Bagaimana dan berapa lama proses klaim pencairan anggaran ke BGN?',type:'t'}
+/* ---- SPPG: Form Survei (sheet "SPPG" - 4 bagian, 33 butir) ---- */
+const FORM_SPPG={key:'SPPG',title:'DAFTAR PERTANYAAN UNTUK SPPG',purpose:'Mengetahui Perkembangan Operasional dalam Pengelolaan SPPG',dur:'45 menit',sections:[
+  {title:'Bagian 1. Identitas dan Lokasi Responden',fields:[
+    {id:'sp101',label:'Nama SPPG',type:'t'},
+    {id:'sp102',label:'Provinsi',type:'t'},
+    {id:'sp103',label:'Kabupaten/Kota',type:'t'},
+    {id:'sp104',label:'Apakah masih beroperasi?',type:'yn'},
+    {id:'sp105',label:'Jika tidak beroperasi, alasan utama',type:'s',opts:['Proses Pendaftaran','Persiapan Operasional','Kontrak berakhir / dihentikan pemerintah','Dana operasional tidak tersedia','Fasilitas dapur tidak layak pakai','Kendala distribusi logistik ke lokasi','Suspend BGN','Lainnya']},
+    {id:'sp106',label:'Sejak kapan beroperasi',type:'d'},
+    {id:'sp107',label:'Nama Responden',type:'t'},
+    {id:'sp108',label:'Jabatan/Posisi Responden',type:'c',opts:['Kepala SPPG','Pengawas Gizi','Akuntan','Lainnya']},
+    {id:'sp109',label:'Petugas yang mewawancara',type:'t'},
+    {id:'sp110',label:'Tanggal wawancara',type:'d'}
   ]},
-  {title:'Tenaga Kerja',fields:[
-    {id:'sp101',label:'Jumlah total tenaga kerja yang terlibat?',type:'n',unit:'orang'},
-    {id:'sp102',label:'Berapa persentase pekerja yang sudah pernah bekerja?',type:'c',opts:['0-20%','21-50%','51-80%','81-100%']},
-    {id:'sp103',label:'Bagaimana rekrutmen pekerja?',type:'t'},
-    {id:'sp104',label:'Berapa rata-rata gaji per hari?',type:'n',unit:'Rp'},
-    {id:'sp105',label:'Apa saja bentuk pelatihan untuk pekerja?',type:'t'}
+  {title:'Bagian 2. Operasional SPPG',fields:[
+    {id:'sp201',label:'Jumlah porsi/hari yang dilayani pada akhir bulan lalu',type:'g',unit:'penerima',rows:[{id:'siswa',label:'Siswa'},{id:'ibuhamil',label:'Ibu Hamil & Menyusui'},{id:'balita',label:'Balita'},{id:'guru',label:'Guru & Tendik'},{id:'posyandu',label:'Kader Posyandu'}]},
+    {id:'sp202',label:'Jumlah Sekolah yang menerima MBG pada akhir bulan lalu',type:'g',unit:'penerima',rows:[{id:'paud',label:'PAUD'},{id:'tk',label:'TK/RA'},{id:'sd',label:'SD/MI/SDLB'},{id:'smp',label:'SMP/MTs/SMPLB'},{id:'sma',label:'SMA/SMK/MA/SMALB'}]},
+    {id:'sp203',label:'Jumlah hari penyaluran MBG bulan lalu',type:'n',unit:'hari'},
+    {id:'sp204',label:'Waktu tempuh terlama untuk distribusi',type:'c',opts:['< 15 menit','< 30 menit','> 30 menit, sebutkan']},
+    {id:'sp205',label:'Total jumlah pekerja bulan lalu (termasuk Kepala SPPG, Pengawas Gizi, Akuntan)',type:'n',unit:'orang'},
+    {id:'sp206',label:'Total jumlah juru masak bulan lalu (termasuk head chef)',type:'n',unit:'orang'},
+    {id:'sp207',label:'Jumlah hari kerja untuk dasar pembayaran upah bulan lalu',type:'n',unit:'hari'},
+    {id:'sp208',label:'Persentase pekerja didaftarkan BPJS Ketenagakerjaan',type:'c',opts:['0-20%','21-50%','51-80%','81-100%']}
   ]},
-  {title:'Higenitas dan Keamanan Pangan',fields:[
-    {id:'sp201',label:'Bagaimana penerapan SOP kebersihan dan keamanan pangan?',type:'t'},
-    {id:'sp202',label:'Bagaimana pengawasan mulai dari pengadaan bahan baku, proses pengolahan, proses distribusi?',type:'t'},
-    {id:'sp203',label:'Apakah ada uji sampel reguler makanan MBG?',type:'yn'},
-    {id:'sp204',label:'Pihak mana saja yang melakukan pengawasan?',type:'t'},
-    {id:'sp205',label:'Jika pernah terdapat kasus keracunan, apa penyebabnya dan bagaimana penanganannya?',type:'t'}
+  {title:'Bagian 3. Keamanan Pangan dan Pengelolaan Sampah',fields:[
+    {id:'sp301',label:'Apakah terdapat pengawasan kelaikan makanan oleh pihak eksternal?',type:'yn'},
+    {id:'sp302',label:'Jika ya, berapa kali dilakukan pada minggu lalu',type:'g',unit:'kali',rows:[{id:'kppg',label:'KPPG/Korwil/Korcam'},{id:'dinkes',label:'Dinas Kesehatan/Puskesmas'},{id:'tni',label:'TNI / POLRI'},{id:'lain',label:'Lainnya'}]},
+    {id:'sp303',label:'Pukul makanan mulai dimasak hari ini',type:'tm'},
+    {id:'sp304',label:'Pukul makanan selesai dimasak',type:'tm'},
+    {id:'sp305',label:'Pukul mulai proses pemorsian',type:'tm'},
+    {id:'sp306',label:'Pukul selesai diporsikan',type:'tm'},
+    {id:'sp307',label:'Pukul dikirim ke penerima',type:'tm'},
+    {id:'sp308',label:'Siapa yang melakukan uji sampel makanan sebelum dibagikan?',type:'c',opts:['Tidak ada','Kepala SPPG','Pengawas Gizi','Juru Masak','Lainnya']},
+    {id:'sp309',label:'Sumber air utama untuk memasak',type:'c',opts:['Sumur Bor/Pompa','PDAM','Air Galon Bermerk','Air Galon Isi ulang','Lainnya']},
+    {id:'sp310',label:'Pernah ada kejadian gangguan pencernaan?',type:'c',opts:['Tidak','Ya - 1 bulan terakhir','Ya - 1-3 bulan lalu','Ya - lebih dari 3 bulan lalu']},
+    {id:'sp311',label:'Pengelolaan sampah/limbah padat sisa makanan MBG',type:'c',opts:['Didaur ulang / dimanfaatkan kembali','Dibuang ke TPA','Dibuang ke sungai/laut/pesisir','Lainnya']},
+    {id:'sp312',label:'Kendala dalam penyiapan makanan dalam jumlah besar',type:'ta'}
   ]},
-  {title:'Standar Gizi Makanan',fields:[
-    {id:'sp301',label:'Bagaimana pemenuhan standar gizi? Apa ukurannya?',type:'t'},
-    {id:'sp302',label:'Bagaimana cara menentukan menu makanan?',type:'t'},
-    {id:'sp303',label:'Apakah semua menggunakan bahan segar atau ada bahan olahan (Ultra Processed Food)?',type:'t'},
-    {id:'sp304',label:'Bagaimana cara pemorsian? (Ditimbang/Ditakar/Dicetak/Dikira-kira?)',type:'t'},
-    {id:'sp305',label:'Bagaimana peran ahli gizi di SPPG?',type:'t'}
-  ]},
-  {title:'Supply Bahan Makanan',fields:[
-    {id:'sp401',label:'Dari mana saja bahan baku didapatkan? Apakah melibatkan pelaku usaha lokal?',type:'t'},
-    {id:'sp402',label:'Bagaimana cara menentukan supplier bahan baku?',type:'t'},
-    {id:'sp403',label:'Siapa yang bertanggung jawab dalam pembayaran kepada supplier?',type:'t'},
-    {id:'sp404',label:'Apakah ada kerja sama dengan perusahaan biskuit/susu/makanan instan?',type:'yn'},
-    {id:'sp405',label:'Berapa total pembelanjaan dari supplier per minggu?',type:'n',unit:'Rp'},
-    {id:'sp406',label:'Apakah alasan jika pernah terjadi keterlambatan dalam pengiriman?',type:'t'}
-  ]},
-  {title:'Sampah',fields:[
-    {id:'sp501',label:'Bagaimana pengelolaan sampah sisa makanan?',type:'t'},
-    {id:'sp502',label:'Apakah ada instalasi pengelolahan sampah di lingkungan SPPG ini?',type:'yn'}
+  {title:'Bagian 4. Administrasi Keuangan SPPG',fields:[
+    {id:'sp401',label:'Saldo VA akhir bulan lalu',type:'n',unit:'Rp Juta'},
+    {id:'sp402',label:'Saldo VA 3 bulan lalu pernah melebihi Rp500 juta?',type:'yn'},
+    {id:'sp403',label:'Nilai penerimaan/top up dari BGN bulan lalu',type:'n',unit:'Rp Juta'},
+    {id:'sp404',label:'Rentang waktu top up saldo VA terakhir dan sebelumnya',type:'n',unit:'hari kerja'},
+    {id:'sp405',label:'Laporan keuangan yang disampaikan ke BGN',type:'g',rows:[{id:'harian',label:'Harian',type:'yn'},{id:'duamingguan',label:'Dua mingguan',type:'yn'},{id:'bulanan',label:'Bulanan',type:'yn'}]},
+    {id:'sp406',label:'Aplikasi yang digunakan untuk laporan keuangan',type:'g',rows:[{id:'apl',label:'Aplikasi Pelaporan SPPG (Excel)',type:'yn'},{id:'lain',label:'Aplikasi lainnya',type:'yn'}]},
+    {id:'sp407',label:'Periode pembayaran insentif dapur (Rp6 juta/hari)',type:'c',opts:['Bulanan','Dua mingguan','Mingguan','Harian']},
+    {id:'sp408',label:'Jumlah hari untuk perhitungan insentif dapur minggu lalu',type:'n',unit:'hari'},
+    {id:'sp409',label:'Jumlah supplier untuk program MBG pada SPPG ini',type:'n',unit:'unit supplier'},
+    {id:'sp410',label:'Pengeluaran bahan baku minggu lalu (per kelompok supplier)',type:'g',unit:'Rp Juta',rows:[{id:'kdkmp',label:'KDKMP'},{id:'bumdes',label:'BUMDes/Koperasi lainnya'},{id:'agen',label:'Agen/Pasar'},{id:'distributor',label:'Distributor'},{id:'produsen',label:'Produsen (petani, peternak, nelayan)'},{id:'umkm',label:'UMKM makanan'}]},
+    {id:'sp411',label:'Pengeluaran bahan baku minggu lalu (per kelompok bahan baku)',type:'g',fields:[{id:'dalam',label:'Dalam kota',unit:'Rp Juta'},{id:'luar',label:'Luar kota',unit:'Rp Juta'}],rows:[{id:'pokok',label:'Makanan Pokok (Beras, Kentang, Ubi)'},{id:'lauk',label:'Lauk (Daging, ayam, ikan, tempe, tahu)'},{id:'sayur',label:'Sayuran'},{id:'buah',label:'Buah-buahan'},{id:'minum',label:'Minuman (Susu, dll)'},{id:'lain',label:'Lainnya (Minyak, bumbu)'}]},
+    {id:'sp412',label:'Harga bahan baku',type:'g',fields:[{id:'ini',label:'Bulan ini',unit:'Rp Ribu/kg'},{id:'lalu',label:'Bulan lalu',unit:'Rp Ribu/kg'}],rows:[{id:'beras',label:'Beras'},{id:'ayam',label:'Daging ayam'},{id:'telur',label:'Telur'},{id:'susu',label:'Susu'}]},
+    {id:'sp413',label:'Pengeluaran biaya operasional minggu lalu',type:'g',unit:'Rp Juta',rows:[{id:'tk',label:'Tenaga kerja/Relawan'},{id:'bbm',label:'Bensin/Solar/BBM'},{id:'lpg',label:'LPG/BBG/Gas Kota'},{id:'util',label:'Utilitas: Listrik, Air Bersih'},{id:'sewa',label:'Sewa kendaraan'},{id:'lain',label:'Biaya operasional lainnya'}]},
+    {id:'sp414',label:'Kendala terkait penyiapan dan distribusi MBG (boleh lebih dari satu)',type:'m',opts:['Ketersediaan bahan baku','Harga bahan baku meningkat','Pembayaran ke supplier terhambat','Petty cash tidak mencukupi','Keterlambatan pencairan anggaran dari BGN','Lainnya']}
   ]}
 ]};
 /* ---- Naker: Form Tenaga Kerja (sheet "Naker" - 3 bagian, 10 butir) ---- */
@@ -1127,7 +1137,10 @@ function pickYN(btn){btn.parentNode.querySelectorAll('.qyn-btn').forEach(b=>b.cl
 function hasilSaran(){
   if(currentRekamForm==='NAKER')return 'baik';
   if(currentRekamForm==='SPPG'){
-    // New form structure - default to 'baik' as there's no automatic scoring
+    const d=collectGeneric(FORM_SPPG).fields;
+    if(String(d.sp310||'').indexOf('Ya')===0)return 'kritis';
+    if((d.sp301||'')==='Tidak')return 'perbaikan';
+    if(/Dibuang ke sungai|Dibuang ke TPA/.test(d.sp311||''))return 'perbaikan';
     return 'baik';
   }
   return 'baik';
@@ -2459,16 +2472,16 @@ function buildSppgPrintHtml(m,blank){
   const u=(m&&m.unitId)?unitById(m.unitId):null;
   const tgl=(m&&m.tgl)||'', petugas=(m&&m.petugas)||'';
   const hl=(m&&m.hasil&&HASIL_META[m.hasil])?HASIL_META[m.hasil].label:'';
-  let h='<h1>DAFTAR PERTANYAAN SURVEY PENYALURAN MBG A</h1>';
-  h+='<div class="sub">Mengetahui Perkembangan Operasional dalam Pengelolaan SPPG (estimasi &plusmn;45 menit)</div>';
+  let h='<h1>Daftar Pertanyaan Survey Penyaluran MBG</h1>';
+  h+='<div class="sub">Survey Pemantauan Pelaksanaan Makan Bergizi Gratis &mdash; SPPG (estimasi &plusmn;45 menit)</div>';
   h+=printHeader(tgl,petugas,u,[
     ['Nama SPPG',u?u.nama:'........................','Tanggal Survei',tgl?fmtD(tgl):'........................'],
     ['Kabupaten/Kota',u?u.kab:'........................','Petugas Survei',petugas||'........................'],
     ['Responden (Nama)',fields.resp||'........................','Jabatan',fields.jab||'........................'],
     ['Alamat SPPG',u?u.alamat:'........................................................................................................................','','']
   ]);
-  FORM_SPPG.sections.forEach(sec=>{
-    h+=`<div class="secap">${escP(sec.title)}</div>`;
+  FORM_SPPG.forEach(sec=>{
+    h+=`<div class="secap">${escP(sec.judul)}</div>`;
     h+='<table><thead><tr><th class="kol-no">No</th><th style="text-align:left;width:46%">Pertanyaan</th><th style="text-align:left">Jawaban</th></tr></thead><tbody>';
     sec.fields.forEach((fld,fi)=>{
       const ans=blank?'':(fields[fld.id]||'');
@@ -2603,7 +2616,6 @@ function generateFormPdf(jenis,filled,rec){
   toast('PDF form '+formType+' terunduh');
 }
 /* ===== Generator Excel form (SheetJS) — file .xlsx persis struktur form ===== */
-/* ===== Generator Excel form (SheetJS) — file .xlsx persis struktur Google Sheets ===== */
 function gridXls(aoa,fld,data,filled){
   const d=data||{};
   aoa.push(['(tabel)',fld.label+(fld.unit?' ('+fld.unit+')':''),'']);
@@ -2623,18 +2635,16 @@ function generateFormXlsx(jenis,filled,rec){
   const u=(rec&&rec.unitId)?unitById(rec.unitId):null;
   const tgl=(rec&&rec.tgl)||'',petugas=(rec&&rec.petugas)||'',f=(rec&&rec.form)||{};
   const aoa=[];
-  
+  aoa.push([isK?'KUESIONER MONEV KDMP/KKMP':((FORMS[formType]||{}).title||'FORM')]);
+  aoa.push([(FORMS[formType]||{}).purpose||'']);
+  aoa.push([]);
+  aoa.push(['Nama KDMP/KKMP',u?u.nama:'','Tanggal Survei',tgl?fmtD(tgl):'']);
+  aoa.push(['Kabupaten/Kota',u?u.kab:'','Kecamatan',u?u.kec:'']);
+  aoa.push(['Desa/Kelurahan',u?u.desa:'','NIB Koperasi',f.nib||'']);
+  aoa.push(['NPWP Koperasi',f.npwp||'','Nama Responden',f.resp_nama||'']);
+  aoa.push(['No. HP Responden',f.resp_hp||'','Jenis Responden',f.resp_jenis||'']);
+  aoa.push([]);
   if(isK){
-    // KDMP form - keep existing structure
-    aoa.push(['KUESIONER MONEV KDMP/KKMP']);
-    aoa.push([(FORMS[formType]||{}).purpose||'']);
-    aoa.push([]);
-    aoa.push(['Nama KDMP/KKMP',u?u.nama:'','Tanggal Survei',tgl?fmtD(tgl):'']);
-    aoa.push(['Kabupaten/Kota',u?u.kab:'','Kecamatan',u?u.kec:'']);
-    aoa.push(['Desa/Kelurahan',u?u.desa:'','NIB Koperasi',f.nib||'']);
-    aoa.push(['NPWP Koperasi',f.npwp||'','Nama Responden',f.resp_nama||'']);
-    aoa.push(['No. HP Responden',f.resp_hp||'','Jenis Responden',f.resp_jenis||'']);
-    aoa.push([]);
     aoa.push(['SKALA: 1=Sangat Tidak Baik, 2=Kurang Baik, 3=Baik, 4=Sangat Baik (beri tanda X)','','','','','']);
     aoa.push([]);
     const secs=f.sections||[];
@@ -2654,84 +2664,21 @@ function generateFormXlsx(jenis,filled,rec){
     aoa.push(['3,26-4,00','Sangat Baik'],['2,51-3,25','Baik'],['1,76-2,50','Kurang Baik'],['1,00-1,75','Sangat Kurang']);
     if(filled&&f.avg!=null)aoa.push(['HASIL','Skor '+f.avg+' - '+f.kategori]);
   }else{
-    // SPPG/Naker form - match Google Sheets structure exactly
     const formDef=FORMS[formType]||FORM_SPPG;const fields=f.fields||{};
-    
-    // Header - match Google Sheets exactly
-    aoa.push(['DAFTAR PERTANYAAN SURVEY PENYALURAN MBG A','','','','','','','','','','','','','','','','','','','','','','','','','','']);
-    aoa.push(['Nama SPPG',u?u.nama:'','','','','','','','','','','','','','','','','','','','','','','','','','','','']);
-    aoa.push(['Alamat',u?u.alamat:'','','','','','','','','','','','','','','','','','','','','','','','','','','','']);
-    aoa.push([]);
-    
-    // Questions - match Google Sheets format exactly
-    let questionNum = 1;
-    formDef.sections.forEach((sec,secIdx)=>{
-      // Section header
-      aoa.push([sec.title,'','','','','','','','','','','','','','','','','','','','','','','','','','','','']);
-      
-      // Questions in this section
-      sec.fields.forEach((fld,fldIdx)=>{
-        const row = [];
-        row.push(questionNum);
-        row.push(fld.label);
-        
-        // Add answer column if filled
-        if(filled){
-          if(fld.type==='g'){
-            // Grid type - add values
-            const gridData = fields[fld.id] || {};
-            if(fld.rows){
-              fld.rows.forEach(r=>{
-                const val = gridData[r.id] || '';
-                row.push(val);
-              });
-            }
-          }else{
-            // Single value
-            row.push(fieldVal(fields[fld.id],filled));
-          }
-        }
-        
-        // Pad row to 26 columns (A-Z) like Google Sheets
-        while(row.length < 26) row.push('');
-        
-        aoa.push(row);
-        questionNum++;
+    formDef.sections.forEach(sec=>{
+      aoa.push([sec.title,'','']);
+      aoa.push(['No','Pertanyaan','Jawaban']);
+      sec.fields.forEach((fld,i)=>{
+        if(fld.type==='g'){gridXls(aoa,fld,fields[fld.id],filled);}
+        else{aoa.push([i+1,fld.label+(fld.unit?' ('+fld.unit+')':''),fieldVal(fields[fld.id],filled)]);}
       });
-      
-      aoa.push([]); // Empty row between sections
+      aoa.push([]);
     });
-    
-    // Footer
-    aoa.push([]);
-    aoa.push(['Estimasi waktu survey per SPPG yang dibutuhkan: 45 menit','','','','','','','','','','','','','','','','','','','','','','','','','','']);
-    aoa.push(['======== Terima kasih atas partisipasi Bapak/Ibu dalam upaya meningkatkan kualitas MBG ========','','','','','','','','','','','','','','','','','','','','','','','','','','']);
-    
     if(filled&&rec&&rec.hasil)aoa.push(['STATUS MONITORING',HASIL_META[rec.hasil]?HASIL_META[rec.hasil].label:rec.hasil,'']);
   }
-  
   const ws=XLSX.utils.aoa_to_sheet(aoa);
-  
-  // Set column widths to match Google Sheets exactly
-  if(isK){
-    ws['!cols']=[{wch:6},{wch:58},{wch:16},{wch:16},{wch:16},{wch:16}];
-  }else{
-    // SPPG/Naker: Column A=6, Column B=80 (wide for questions), C-Z=15 (for answers)
-    ws['!cols']=[{wch:6},{wch:80}];
-    for(let i=2;i<26;i++) ws['!cols'].push({wch:15});
-  }
-  
-  // Merge title cells
-  if(!isK){
-    ws['!merges']=[
-      {s:{r:0,c:0},e:{r:0,c:25}},  // Title row
-      {s:{r:1,c:1},e:{r:1,c:25}},  // Nama SPPG value
-      {s:{r:2,c:1},e:{r:2,c:25}}   // Alamat value
-    ];
-  }else{
-    ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:5}},{s:{r:1,c:0},e:{r:1,c:5}}];
-  }
-  
+  ws['!cols']=[{wch:6},{wch:58},{wch:16},{wch:16},{wch:16},{wch:16}];
+  ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:5}},{s:{r:1,c:0},e:{r:1,c:5}}];
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Form '+formType);
   XLSX.writeFile(wb,'DARMA_Form_'+formType+'_'+(filled?'Terisi':'Kosong')+'.xlsx');
@@ -2938,5 +2885,5 @@ function cetakMonDocx(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28779b22cb80d78',t:'MTc4NjI4NjAwMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
