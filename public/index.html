@@ -1107,10 +1107,16 @@ function renderRekamForm(jenis,rec){
       h+=`<div class="qyn"><div class="qyn-txt">${ci+1}. ${esc(c)}</div>`+`<button type="button" class="qyn-btn ${sel==='ya'?'on':''}" data-ci="${ci}" data-j="ya" onclick="pickYN(this)">Ya</button>`+`<button type="button" class="qyn-btn ${sel==='tidak'?'on':''}" data-ci="${ci}" data-j="tidak" onclick="pickYN(this)">Tidak</button></div>`;
     });
     h+=`<div class="qscore-sum"><div><div class="qs-n" id="qsNum">—</div><div class="qs-l">Skor Rata-rata (maks 4)</div></div><div id="qsKat" style="font-size:11px;font-weight:800;text-align:right;color:var(--text3)">Isi butir penilaian</div></div>`;
-    h+=`<div class="qbagian kdmp">Informasi Tambahan <small>(Numerik)</small></div>`;
-    h+=`<div class="fg"><label class="fl">Jumlah Pengurus Koperasi (Orang)</label><input type="number" id="ff_num_pengurus" class="fc" placeholder="Contoh: 5"/></div>`;
-    h+=`<div class="fg"><label class="fl">Tenaga Kerja Pembangunan (Orang)</label><input type="number" id="ff_num_naker" class="fc" placeholder="Contoh: 12"/></div>`;
-    h+=`<div class="fg"><label class="fl">Perkiraan Omset Bulanan (Rp)</label><input type="number" id="ff_num_omset" class="fc" placeholder="Contoh: 50000000"/></div>`;
+    
+    h+=`<div class="qbagian kdmp">D. Pertanyaan Terbuka</div>`;
+    h+=`<div class="fg"><label class="fl">1. Apa kelebihan KDMP/KKMP menurut Anda?</label><textarea id="ff_open_kelebihan" class="fc">${esc(f.open_kelebihan||'')}</textarea></div>`;
+    h+=`<div class="fg"><label class="fl">2. Apa kendala utama yang dihadapi dan upaya yang sudah dilakukan?</label><textarea id="ff_open_kendala" class="fc">${esc(f.open_kendala||'')}</textarea></div>`;
+    h+=`<div class="fg"><label class="fl">3. Apa saran untuk meningkatkan kinerja KDMP/KKMP?</label><textarea id="ff_open_saran" class="fc">${esc(f.open_saran||'')}</textarea></div>`;
+    h+=`<div class="fg"><label class="fl">4. Berapa orang jumlah Pengurus Koperasi keseluruhan?</label><input type="number" id="ff_num_pengurus" class="fc" value="${esc(f.num_pengurus||'')}" placeholder="Angka"/></div>`;
+    h+=`<div class="fg"><label class="fl">5. Berapa jumlah tenaga kerja yang diserap untuk pembangunan?</label><input type="number" id="ff_num_naker" class="fc" value="${esc(f.num_naker||'')}" placeholder="Angka"/></div>`;
+    h+=`<div class="fg"><label class="fl">6. Berapa perkiraan omset dalam sebulan (Rp)?</label><input type="number" id="ff_num_omset" class="fc" value="${esc(f.num_omset||'')}" placeholder="Angka"/></div>`;
+    h+=`<div class="fg"><label class="fl">7. Produk unggulan yang terjual? (Termasuk produk lokal desa)</label><textarea id="ff_open_produk" class="fc">${esc(f.open_produk||'')}</textarea></div>`;
+
     root.innerHTML='<div class="qkues kdmp">'+h+'</div>';
     calcRekam();
     return;
@@ -1173,11 +1179,15 @@ function collectKDMP(){
   const ans=[].concat.apply([],sections.map(s=>s.scores)).filter(v=>v>0);
   const avg=ans.length?ans.reduce((a,b)=>a+b,0)/ans.length:0;const k=kategoriDariSkor(avg);
   
+  const open_kelebihan = document.getElementById('ff_open_kelebihan').value;
+  const open_kendala = document.getElementById('ff_open_kendala').value;
+  const open_saran = document.getElementById('ff_open_saran').value;
+  const open_produk = document.getElementById('ff_open_produk').value;
   const pengurus = document.getElementById('ff_num_pengurus').value;
   const naker = document.getElementById('ff_num_naker').value;
   const omset = document.getElementById('ff_num_omset').value;
 
-  return {nib, npwp, bidang_usaha, status_bangun, prov, desa, resp_nama, resp_hp, resp_jenis, sections:sections, compliance:compliance, avg:ans.length?(+avg.toFixed(2)):null, kategori:ans.length?k.label:null, hasil:k.hasil, terjawab:ans.length, num_pengurus:pengurus, num_naker:naker, num_omset:omset};
+  return {nib, npwp, bidang_usaha, status_bangun, prov, desa, resp_nama, resp_hp, resp_jenis, sections:sections, compliance:compliance, avg:ans.length?(+avg.toFixed(2)):null, kategori:ans.length?k.label:null, hasil:k.hasil, terjawab:ans.length, open_kelebihan, open_kendala, open_saran, open_produk, num_pengurus:pengurus, num_naker:naker, num_omset:omset};
 }
 function collectGeneric(formDef){
   const data={};
@@ -2564,12 +2574,18 @@ function generateFormPdf(jenis,filled,rec){
       doc.autoTable({startY:y,body:[[{content:'Nilai Rata-rata: '+f.avg,styles:{fontStyle:'bold',fontSize:10,halign:'center'}},{content:'Kategori: '+(f.kategori||''),styles:{fontStyle:'bold',fontSize:10,halign:'center'}},{content:'Status: '+(HASIL_META[f.hasil]?HASIL_META[f.hasil].label:''),styles:{fontStyle:'bold',fontSize:10,halign:'center',textColor:[200,16,46]}}]],theme:'grid',styles:{fillColor:[254,242,242]}});
       y=doc.lastAutoTable.finalY+5;
     }
-    // Informasi Tambahan
-    doc.autoTable({startY:y, head:[['Data Operasional Koperasi','Nilai']], body:[
-      ['Jumlah Pengurus Koperasi', (f.num_pengurus||'0') + ' Orang'],
-      ['Tenaga Kerja Pembangunan', (f.num_naker||'0') + ' Orang'],
-      ['Perkiraan Omset Bulanan', 'Rp ' + fmtN(f.num_omset||0)]
-    ], styles:{fontSize:8}, headStyles:{fillColor:[80,80,80]}});
+    // Bagian D: Pertanyaan Terbuka
+    y=formTitle(doc,'D. Pertanyaan Terbuka',y,PH);
+    const openRows = [
+      ['1. Kelebihan KDMP/KKMP', pdfSafe(f.open_kelebihan || '')],
+      ['2. Kendala & Upaya', pdfSafe(f.open_kendala || '')],
+      ['3. Saran Perbaikan', pdfSafe(f.open_saran || '')],
+      ['4. Jumlah Pengurus', (f.num_pengurus||'0') + ' Orang'],
+      ['5. Naker Pembangunan', (f.num_naker||'0') + ' Orang'],
+      ['6. Perkiraan Omset', 'Rp ' + fmtN(f.num_omset||0)],
+      ['7. Produk Unggulan/Lokal', pdfSafe(f.open_produk || '')]
+    ];
+    doc.autoTable({startY:y, body:openRows, theme:'grid', styles:{fontSize:7.5,cellPadding:1.8}, columnStyles:{0:{cellWidth:45, fontStyle:'bold', fillColor:[245,245,245]}}});
     y=doc.lastAutoTable.finalY+10;
     // Tanda Tangan
     doc.setFontSize(10); doc.setFont('helvetica','normal');
@@ -2682,5 +2698,5 @@ function cetakMon(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;cons
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2818da30f0c4717',t:'MTc4NjIyMzkwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a285d5928f8bff91',t:'MTc4NjI2ODc5Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a286dbf0aa8e0bfb',t:'MTc4NjI3OTUzOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2818da30f0c4717',t:'MTc4NjIyMzkwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a285d5928f8bff91',t:'MTc4NjI2ODc5Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a286e30f8dec68f5',t:'MTc4NjI3OTgzMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
