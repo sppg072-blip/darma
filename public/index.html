@@ -1206,10 +1206,10 @@ const LS_KEY = 'darma_mbg_v1';
    - penulisan: persist() -> POST /api/{kind};  hapus: persistRemove()
 ============================================================ */
 const API={
-  base:(function(){try{return localStorage.getItem('simon_api_base')||'';}catch(e){return '';}})(),
+  base:(function(){try{return localStorage.getItem('darma_api_base')||localStorage.getItem('simon_api_base')||'';}catch(e){return '';}})(),
   mode:'local',
-  token:(function(){try{return localStorage.getItem('simon_token')||'';}catch(e){return '';}})(),
-  setToken(t){this.token=t;try{if(t)localStorage.setItem('simon_token',t);else localStorage.removeItem('simon_token');}catch(e){}},
+  token:(function(){try{return localStorage.getItem('darma_token')||localStorage.getItem('simon_token')||'';}catch(e){return '';}})(),
+  setToken(t){this.token=t;try{if(t){localStorage.setItem('darma_token',t);localStorage.setItem('simon_token',t);}else{localStorage.removeItem('darma_token');localStorage.removeItem('simon_token');}}catch(e){}},
   async req(path,opts){const h=Object.assign({'Content-Type':'application/json'},(opts&&opts.headers)||{});if(this.token)h['Authorization']='Bearer '+this.token;const r=await fetch(this.base+path,Object.assign({},opts,{headers:h}));if(r.status===401){this.setToken('');}return r;},
   async isCloud(){try{const r=await fetch(this.base+'/api/ping');return r.ok;}catch(e){return false;}},
   async probe(){try{const r=await this.req('/api/state');if(!r.ok)return null;return await r.json();}catch(e){return null;}},
@@ -1229,7 +1229,7 @@ function uid(p){return p+Date.now().toString(36)+Math.random().toString(36).slic
 function fmtD(tgl){if(!tgl)return '—';const d=new Date(tgl+'T00:00:00');if(isNaN(d))return tgl;return d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});}
 function fmtN(n){return (n==null||n==='')?'—':Number(n).toLocaleString('id-ID');}
 function toast(msg,type='ok'){const w=document.getElementById('toastwrap');const t=document.createElement('div');t.className='toast '+type;t.textContent=msg;w.appendChild(t);setTimeout(()=>{t.style.transition='all .3s';t.style.opacity='0';t.style.transform='translateX(40px)';setTimeout(()=>t.remove(),300);},2800);}
-function loadDB(){try{const s=localStorage.getItem(LS_KEY);if(s)DB=JSON.parse(s);}catch(e){}}
+function loadDB(){try{let s=localStorage.getItem(LS_KEY);if(!s)s=localStorage.getItem('simon_mbg_v1');if(s)DB=JSON.parse(s);}catch(e){}}
 function saveDB(){if(API.mode!=='local')return;try{localStorage.setItem(LS_KEY,JSON.stringify(DB));}catch(e){}}
 async function loadDBAsync(){
   if(await API.isCloud()){
@@ -1379,6 +1379,72 @@ function buildPopup(u){
 }
 function flyToUnit(id){const u=unitById(id);if(!u)return;map.flyTo([u.lat,u.lng],15,{duration:1.1});selectUnit(id);}
 function navigateUnit(){const u=unitById(dtCurrent);if(!u)return;navToUnit(u.id);}
+function navToUnit(id){const u=unitById(id);if(!u){toast("Unit tidak ditemukan","e");return;}const dest=encodeURIComponent(u.lat+","+u.lng);window.open("https://www.google.com/maps/dir/?api=1&destination="+dest,"_blank","noopener");toast("🗺️ Membuka rute Google Maps ke "+u.nama);}
+
+let boundariesVisible = true;
+let currentGeoJSON = null;
+
+function selectRegion(name) {
+  const menu = document.getElementById('boundMenu');
+  if(menu) menu.classList.remove('show');
+  
+  const fdKab = document.getElementById('fdKab');
+  if(fdKab) fdKab.value = name;
+  onFilterChange();
+  
+  renderBoundaries(name);
+  
+  if (name) {
+    toast('📂 Fokus wilayah: ' + name);
+    const layers = boundariesLayer.getLayers();
+    const target = layers.find(l => l.getTooltip() && l.getTooltip().getContent().includes(name));
+    if(target && target.getBounds) map.flyToBounds(target.getBounds(), {padding: [50, 50], duration: 1});
+  } else {
+    toast('🌍 Menampilkan seluruh wilayah');
+    fitAll();
+  }
+}
+
+async function loadBoundaries() {
+  try {
+    const res = await fetch('./regencies.json');
+    if (!res.ok) throw new Error('Local file not found');
+    currentGeoJSON = await res.json();
+    renderBoundaries('');
+  } catch (e) { console.error('Boundaries error:', e); }
+}
+
+function renderBoundaries(filterName) {
+  if (!currentGeoJSON) return;
+  boundariesLayer.clearLayers();
+  const regionMeta = {
+    '3375': { name: 'Kota Pekalongan', color: '#3B82F6' },
+    '3326': { name: 'Kab. Pekalongan', color: '#10B981' },
+    '3325': { name: 'Kab. Batang', color: '#F59E0B' }
+  };
+  L.geoJSON(currentGeoJSON, {
+    filter: (feat) => {
+      const id = String(feat.properties.id || feat.properties.code || '3325');
+      return !filterName || (regionMeta[id] && regionMeta[id].name === filterName);
+    },
+    style: (feat) => {
+      const id = String(feat.properties.id || feat.properties.code || '3325');
+      const meta = regionMeta[id] || { color: '#64748B' };
+      return {
+        fillColor: meta.color,
+        fillOpacity: filterName ? 0.22 : 0.12,
+        color: meta.color,
+        weight: filterName ? 3 : 2,
+        dashArray: '5, 5'
+      };
+    },
+    onEachFeature: (feat, layer) => {
+      const id = String(feat.properties.id || feat.properties.code || '3325');
+      if(regionMeta[id]) layer.bindTooltip(regionMeta[id].name, { sticky: true, direction: 'top' });
+    }
+  }).addTo(boundariesLayer);
+  boundariesLayer.getLayers().forEach(l => { if(l.bringToBack) l.bringToBack(); });
+}
 function navToUnit(id){const u=unitById(id);if(!u){toast("Unit tidak ditemukan","e");return;}const dest=encodeURIComponent(u.lat+","+u.lng);window.open("https://www.google.com/maps/dir/?api=1&destination="+dest,"_blank","noopener");toast("🗺️ Membuka rute Google Maps ke "+u.nama);}
 
 let boundariesVisible = true;
@@ -2606,5 +2672,5 @@ function cetakMon(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;cons
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2818da30f0c4717',t:'MTc4NjIyMzkwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a285e6fc48e1fd9a',t:'MTc4NjI2OTUwNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2818da30f0c4717',t:'MTc4NjIyMzkwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a286060a695efde8',t:'MTc4NjI3MDc3Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
