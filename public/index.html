@@ -402,6 +402,7 @@ textarea.fc{resize:vertical;min-height:56px;}
 <div class="map-ctrl" id="mapCtrl">
   <button class="mbtn" onclick="resetView()"><i class="fas fa-compress"></i> Semua Unit</button>
   <button class="mbtn" onclick="toggleLayer()"><i class="fas fa-layer-group"></i> <span id="layerLbl">Satelit</span></button>
+  <button class="mbtn" onclick="toggleBoundaries()"><i class="fas fa-draw-polygon"></i> <span id="boundLbl">Hapus Batas</span></button>
   <button class="mbtn" onclick="exportXlsx()"><i class="fas fa-file-excel" style="color:var(--ok)"></i> Export Excel</button>
 </div>
 
@@ -1179,7 +1180,7 @@ const DEF = {
 
 let DB = JSON.parse(JSON.stringify(DEF));
 let CU = null;
-let map, layerStreet, layerSat, layerMode='street';
+let map, layerStreet, layerSat, layerMode='street', boundariesLayer;
 let markers = [];
 let pendingDel = null, dtCurrent = null, editingJenis = 'SPPG';
 let tempMarker = null, pickMode = false; // pin 📍 pemilihan koordinat unit di peta
@@ -1268,6 +1269,10 @@ function initMap(){
   map=L.map('map',{zoomControl:true,center:[-6.900,109.56],zoom:10});
   layerStreet=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(map);
   layerSat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'© Esri · Maxar',maxZoom:19});
+  
+  boundariesLayer = L.layerGroup().addTo(map);
+  loadBoundaries();
+
   map.on('click',function(e){
     const mu=document.getElementById('mUnit');
     if(!mu.classList.contains('hidden')){
@@ -1282,6 +1287,20 @@ function initMap(){
 function toggleLayer(){
   if(layerMode==='street'){map.removeLayer(layerStreet);layerSat.addTo(map);layerMode='sat';document.getElementById('layerLbl').textContent='Street';}
   else{map.removeLayer(layerSat);layerStreet.addTo(map);layerMode='street';document.getElementById('layerLbl').textContent='Satelit';}
+}
+
+let boundariesVisible = true;
+function toggleBoundaries() {
+  if (boundariesVisible) {
+    map.removeLayer(boundariesLayer);
+    document.getElementById('boundLbl').textContent = 'Tampil Batas';
+    toast('Batas wilayah disembunyikan');
+  } else {
+    map.addLayer(boundariesLayer);
+    document.getElementById('boundLbl').textContent = 'Hapus Batas';
+    toast('Batas wilayah ditampilkan');
+  }
+  boundariesVisible = !boundariesVisible;
 }
 function resetView(){fitAll();}
 function fitAll(){
@@ -1359,6 +1378,37 @@ function buildPopup(u){
 function flyToUnit(id){const u=unitById(id);if(!u)return;map.flyTo([u.lat,u.lng],15,{duration:1.1});selectUnit(id);}
 function navigateUnit(){const u=unitById(dtCurrent);if(!u)return;navToUnit(u.id);}
 function navToUnit(id){const u=unitById(id);if(!u){toast('Unit tidak ditemukan','e');return;}const dest=encodeURIComponent(u.lat+','+u.lng);window.open('https://www.google.com/maps/dir/?api=1&destination='+dest,'_blank','noopener');toast('🗺️ Membuka rute Google Maps ke '+u.nama);}
+
+async function loadBoundaries() {
+  const regionMeta = {
+    '3375': { name: 'Kota Pekalongan', color: '#3B82F6' },
+    '3326': { name: 'Kab. Pekalongan', color: '#10B981' },
+    '3325': { name: 'Kab. Batang', color: '#F59E0B' }
+  };
+
+  try {
+    const res = await fetch('https://raw.githubusercontent.com/anshori/indonesia-geojson/master/regency/33.json');
+    const data = await res.json();
+
+    L.geoJSON(data, {
+      filter: (feat) => regionMeta[feat.properties.id],
+      style: (feat) => ({
+        fillColor: regionMeta[feat.properties.id].color,
+        fillOpacity: 0.12,
+        color: regionMeta[feat.properties.id].color,
+        weight: 2,
+        dashArray: '4, 4'
+      }),
+      onEachFeature: (feat, layer) => {
+        layer.bindTooltip(regionMeta[feat.properties.id].name, { sticky: true, opacity: 0.9 });
+        layer.on('mouseover', function() { this.setStyle({ fillOpacity: 0.25, weight: 3 }); });
+        layer.on('mouseout', function() { this.setStyle({ fillOpacity: 0.12, weight: 2 }); });
+      }
+    }).addTo(boundariesLayer);
+  } catch (e) {
+    console.warn('Gagal memuat batas wilayah:', e);
+  }
+}
 
 /* ============================================================
    FILTER
@@ -2484,5 +2534,5 @@ function cetakMon(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;cons
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2818da30f0c4717',t:'MTc4NjIyMzkwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a285b46e4821fcfe',t:'MTc4NjI2NzQzNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2818da30f0c4717',t:'MTc4NjIyMzkwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a285c67d5892fda0',t:'MTc4NjI2ODE3NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
