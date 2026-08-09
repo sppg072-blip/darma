@@ -221,15 +221,15 @@ textarea.fc{resize:vertical;min-height:56px;}
 .jopt.on-sppg .jt{color:var(--sppg);} .jopt.on-kdmp .jt{color:var(--kdmp);}
 
 /* buttons */
-.btn{border:none;border-radius:11px;padding:8px 10px;font-size:11px;font-weight:800;cursor:pointer;transition:var(--tr);display:inline-flex;align-items:center;justify-content:center;gap:5px;}
-.bp{background:linear-gradient(135deg,#C8102E,#EF4444);color:#fff;box-shadow:0 3px 11px rgba(200,16,46,.35);}
+.btn{border:none;border-radius:11px;padding:7px 9px;font-size:10px;font-weight:800;cursor:pointer;transition:var(--tr);display:inline-flex;align-items:center;justify-content:center;gap:4px;}
+.bp{background:linear-gradient(135deg,#C8102E,#EF4444);color:#fff;box-shadow:0 3px 11px rgba(200,16,46,35);}
 .bp:hover{transform:translateY(-2px);box-shadow:0 6px 17px rgba(200,16,46,.45);}
 .bs{background:var(--text);color:var(--bg2);}
 .bg{background:linear-gradient(135deg,#15803d,#22c55e);color:#fff;box-shadow:0 3px 11px rgba(22,163,74,.35);}
 .bx{background:var(--bg3);color:var(--text2);border:2px solid var(--border);}
 .bd{background:linear-gradient(135deg,#991b1b,#dc2626);color:#fff;}
 .bblk{width:100%;margin-top:5px;}
-.bsm{padding:6px 8px;font-size:10px;border-radius:8px;}
+.bsm{padding:6px 8px;font-size:9px;border-radius:8px;}
 
 /* selection card */
 .sel-card{flex-shrink:0;border-bottom:2px solid var(--border);padding:10px 13px;background:linear-gradient(135deg,var(--brand-bg),var(--bg2));display:none;}
@@ -273,7 +273,7 @@ textarea.fc{resize:vertical;min-height:56px;}
 .mclose:hover{color:var(--bad);}
 .mbody{padding:14px 15px;}
 /* footer buttons in modals */
-.mfoot .btn{flex:1;min-width:70px;font-size:10.5px;padding:8px 5px;}
+.mfoot .btn{flex:1;min-width:60px;font-size:9.5px;padding:8px 4px;}
 .mfoot{display:flex;gap:7px;padding:13px 15px;border-top:2px solid var(--border);position:sticky;bottom:0;background:var(--bg2);border-radius:0 0 17px 17px;flex-wrap:wrap;}
 
 /* ============ MODE: PILIH KOORDINAT DI PETA ============ */
@@ -2470,5 +2470,5 @@ function cetakMon(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;cons
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2818da30f0c4717',t:'MTc4NjIyMzkwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2858ac32d15ef6d',t:'MTc4NjI2NTcyOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2818da30f0c4717',t:'MTc4NjIyMzkwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28592cacac25941',t:'MTc4NjI2NjA1Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
