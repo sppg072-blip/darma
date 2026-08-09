@@ -402,7 +402,15 @@ textarea.fc{resize:vertical;min-height:56px;}
 <div class="map-ctrl" id="mapCtrl">
   <button class="mbtn" onclick="resetView()"><i class="fas fa-compress"></i> Semua Unit</button>
   <button class="mbtn" onclick="toggleLayer()"><i class="fas fa-layer-group"></i> <span id="layerLbl">Satelit</span></button>
-  <button class="mbtn" onclick="toggleBoundaries()"><i class="fas fa-draw-polygon"></i> <span id="boundLbl">Hapus Batas</span></button>
+  <div style="position:relative">
+    <button class="mbtn" onclick="document.getElementById('boundMenu').classList.toggle('show')"><i class="fas fa-draw-polygon"></i> <span id="boundLbl">Wilayah Kerja</span></button>
+    <div id="boundMenu" class="bound-popup">
+      <div class="bp-item" onclick="selectRegion('')">📍 Tampilkan Semua</div>
+      <div class="bp-item" onclick="selectRegion('Kota Pekalongan')">🔵 Kota Pekalongan</div>
+      <div class="bp-item" onclick="selectRegion('Kab. Pekalongan')">🟢 Kab. Pekalongan</div>
+      <div class="bp-item" onclick="selectRegion('Kab. Batang')">🟠 Kab. Batang</div>
+    </div>
+  </div>
   <button class="mbtn" onclick="exportXlsx()"><i class="fas fa-file-excel" style="color:var(--ok)"></i> Export Excel</button>
 </div>
 
@@ -471,7 +479,7 @@ textarea.fc{resize:vertical;min-height:56px;}
       </select>
     </div>
     <div class="fd-group" style="margin-top:6px">
-      <select class="fd-select" id="fdKab" onchange="onFilterChange()">
+      <select class="fd-select" id="fdKab" onchange="onFilterChange(); renderBoundaries(this.value);">
         <option value="">📍 Semua Kabupaten/Kota</option>
       </select>
     </div>
@@ -1379,48 +1387,75 @@ function flyToUnit(id){const u=unitById(id);if(!u)return;map.flyTo([u.lat,u.lng]
 function navigateUnit(){const u=unitById(dtCurrent);if(!u)return;navToUnit(u.id);}
 function navToUnit(id){const u=unitById(id);if(!u){toast('Unit tidak ditemukan','e');return;}const dest=encodeURIComponent(u.lat+','+u.lng);window.open('https://www.google.com/maps/dir/?api=1&destination='+dest,'_blank','noopener');toast('🗺️ Membuka rute Google Maps ke '+u.nama);}
 
+let currentGeoJSON = null;
+
+function selectRegion(name) {
+  // Update UI & Filter
+  document.getElementById('boundMenu').classList.remove('show');
+  document.getElementById('fdKab').value = name;
+  onFilterChange();
+  
+  // Update Boundary Arsir
+  renderBoundaries(name);
+  
+  if (name) {
+    toast('📂 Fokus wilayah: ' + name);
+  } else {
+    toast('🌍 Menampilkan seluruh wilayah');
+    fitAll();
+  }
+}
+
 async function loadBoundaries() {
+  try {
+    const res = await fetch('./regencies.json');
+    if (!res.ok) throw new Error('Local file not found');
+    currentGeoJSON = await res.json();
+    renderBoundaries(''); // Start with all boundaries
+  } catch (e) {
+    console.error('Boundaries error:', e);
+  }
+}
+
+function renderBoundaries(filterName) {
+  if (!currentGeoJSON) return;
+  boundariesLayer.clearLayers();
+  
   const regionMeta = {
     '3375': { name: 'Kota Pekalongan', color: '#3B82F6' },
     '3326': { name: 'Kab. Pekalongan', color: '#10B981' },
     '3325': { name: 'Kab. Batang', color: '#F59E0B' }
   };
 
-  try {
-    // Memuat data dari file lokal (jauh lebih cepat & stabil)
-    const res = await fetch('./regencies.json');
-    if (!res.ok) throw new Error('Local file not found');
-    const data = await res.json();
-
-    L.geoJSON(data, {
-      style: (feat) => {
-        const id = String(feat.properties.id || feat.properties.code || '3325');
-        const meta = regionMeta[id] || { color: '#64748B' };
-        return {
-          fillColor: meta.color,
-          fillOpacity: 0.15,
-          color: meta.color,
-          weight: 2,
-          dashArray: '5, 5'
-        };
-      },
-      onEachFeature: (feat, layer) => {
-        const id = String(feat.properties.id || feat.properties.code || '3325');
-        const meta = regionMeta[id] || { name: 'Wilayah Kerja' };
-        layer.bindTooltip(meta.name, { sticky: true, direction: 'top' });
-        layer.on('mouseover', function() { this.setStyle({ fillOpacity: 0.3, weight: 3 }); });
-        layer.on('mouseout', function() { this.setStyle({ fillOpacity: 0.15, weight: 2 }); });
-      }
-    }).addTo(boundariesLayer);
-    
-    boundariesLayer.getLayers().forEach(l => { if(l.bringToBack) l.bringToBack(); });
-  } catch (e) {
-    console.warn('Fallback to cloud data...');
-    // Jika file lokal gagal (misal saat pengembangan), baru coba ambil dari cloud
-    const cloudRes = await fetch('https://raw.githubusercontent.com/rifandani/indonesia-geojson/master/kabupaten/33.json');
-    const cloudData = await cloudRes.json();
-    // ... (logika filter seperti sebelumnya)
+  const layer = L.geoJSON(currentGeoJSON, {
+    filter: (feat) => {
+      const id = String(feat.properties.id || feat.properties.code || '3325');
+      if (!filterName) return regionMeta[id] != null;
+      return regionMeta[id] && regionMeta[id].name === filterName;
+    },
+    style: (feat) => {
+      const id = String(feat.properties.id || feat.properties.code || '3325');
+      const meta = regionMeta[id] || { color: '#64748B' };
+      return {
+        fillColor: meta.color,
+        fillOpacity: filterName ? 0.22 : 0.12,
+        color: meta.color,
+        weight: filterName ? 3 : 2,
+        dashArray: '5, 5'
+      };
+    },
+    onEachFeature: (feat, layer) => {
+      const id = String(feat.properties.id || feat.properties.code || '3325');
+      const name = regionMeta[id] ? regionMeta[id].name : 'Wilayah Kerja';
+      layer.bindTooltip(name, { sticky: true, direction: 'top' });
+    }
+  }).addTo(boundariesLayer);
+  
+  if (filterName && layer.getBounds().isValid()) {
+    map.flyToBounds(layer.getBounds(), {padding: [50, 50], duration: 1});
   }
+
+  boundariesLayer.getLayers().forEach(l => { if(l.bringToBack) l.bringToBack(); });
 }
 
 /* ============================================================
@@ -1439,15 +1474,15 @@ function onFilterChange(){
 }
 function clearFilters(){
   ['fdJenis','fdHasil','fdKab','fdSearch'].forEach(id=>document.getElementById(id).value='');
+  renderBoundaries(''); // Reset boundaries arsir
   onFilterChange();clearSel();fitAll();
 }
 function quickJenis(j){
   if(j === ''){
     clearFilters();
   } else {
-    // reset other filters to show all of this type
+    // preserve region if any, but clear results and search
     document.getElementById('fdHasil').value = '';
-    document.getElementById('fdKab').value = '';
     document.getElementById('fdSearch').value = '';
     document.getElementById('fdJenis').value = j;
     onFilterChange();
@@ -2547,5 +2582,5 @@ function cetakMon(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;cons
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2818da30f0c4717',t:'MTc4NjIyMzkwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a285d5928f8bff91',t:'MTc4NjI2ODc5Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2818da30f0c4717',t:'MTc4NjIyMzkwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a285d5928f8bff91',t:'MTc4NjI2ODc5Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28656b3ead49c5f',t:'MTc4NjI3NDA4MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
