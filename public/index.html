@@ -38,6 +38,12 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidde
 .map-ctrl.visible{opacity:1;pointer-events:auto;}
 .mbtn{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;box-shadow:var(--sh);display:flex;align-items:center;gap:6px;transition:var(--tr);}
 .mbtn:hover{border-color:var(--brand);color:var(--brand);}
+/* bound popup menu */
+.bound-popup{position:absolute;right:0;top:calc(100% + 5px);background:var(--bg2);border:1px solid var(--border);border-radius:10px;box-shadow:var(--sh2);width:160px;display:none;flex-direction:column;z-index:150;overflow:hidden;}
+.bound-popup.show{display:flex;}
+.bp-item{padding:9px 12px;font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;transition:var(--tr);border-bottom:1px solid var(--border);}
+.bp-item:last-child{border-bottom:none;}
+.bp-item:hover{background:var(--brand-bg);color:var(--brand);}
 /* legend */
 #legendBox{position:fixed;left:12px;bottom:16px;z-index:120;background:var(--bg2);border:1px solid var(--border);border-radius:12px;box-shadow:var(--sh2);padding:10px 12px;max-width:250px;opacity:0;pointer-events:none;transition:opacity .3s;}
 #legendBox.visible{opacity:1;pointer-events:auto;}
@@ -402,7 +408,15 @@ textarea.fc{resize:vertical;min-height:56px;}
 <div class="map-ctrl" id="mapCtrl">
   <button class="mbtn" onclick="resetView()"><i class="fas fa-compress"></i> Semua Unit</button>
   <button class="mbtn" onclick="toggleLayer()"><i class="fas fa-layer-group"></i> <span id="layerLbl">Satelit</span></button>
-  <button class="mbtn" onclick="toggleBoundaries()"><i class="fas fa-draw-polygon"></i> <span id="boundLbl">Hapus Batas</span></button>
+  <div style="position:relative">
+    <button class="mbtn" onclick="document.getElementById('boundMenu').classList.toggle('show')"><i class="fas fa-draw-polygon"></i> <span id="boundLbl">Wilayah Kerja</span></button>
+    <div id="boundMenu" class="bound-popup">
+      <div class="bp-item" onclick="selectRegion('')">📍 Tampilkan Semua</div>
+      <div class="bp-item" onclick="selectRegion('Kota Pekalongan')">🔵 Kota Pekalongan</div>
+      <div class="bp-item" onclick="selectRegion('Kab. Pekalongan')">🟢 Kab. Pekalongan</div>
+      <div class="bp-item" onclick="selectRegion('Kab. Batang')">🟠 Kab. Batang</div>
+    </div>
+  </div>
   <button class="mbtn" onclick="exportXlsx()"><i class="fas fa-file-excel" style="color:var(--ok)"></i> Export Excel</button>
 </div>
 
@@ -1289,19 +1303,7 @@ function toggleLayer(){
   else{map.removeLayer(layerSat);layerStreet.addTo(map);layerMode='street';document.getElementById('layerLbl').textContent='Satelit';}
 }
 
-let boundariesVisible = true;
-function toggleBoundaries() {
-  if (boundariesVisible) {
-    map.removeLayer(boundariesLayer);
-    document.getElementById('boundLbl').textContent = 'Tampil Batas';
-    toast('Batas wilayah disembunyikan');
-  } else {
-    map.addLayer(boundariesLayer);
-    document.getElementById('boundLbl').textContent = 'Hapus Batas';
-    toast('Batas wilayah ditampilkan');
-  }
-  boundariesVisible = !boundariesVisible;
-}
+
 function resetView(){fitAll();}
 function fitAll(){
   const pts=filteredUnits();if(!pts.length){map.flyTo([-6.900,109.56],10);return;}
@@ -1377,11 +1379,68 @@ function buildPopup(u){
 }
 function flyToUnit(id){const u=unitById(id);if(!u)return;map.flyTo([u.lat,u.lng],15,{duration:1.1});selectUnit(id);}
 function navigateUnit(){const u=unitById(dtCurrent);if(!u)return;navToUnit(u.id);}
-function navToUnit(id){const u=unitById(id);if(!u){toast('Unit tidak ditemukan','e');return;}const dest=encodeURIComponent(u.lat+','+u.lng);window.open('https://www.google.com/maps/dir/?api=1&destination='+dest,'_blank','noopener');toast('🗺️ Membuka rute Google Maps ke '+u.nama);}
+function navToUnit(id){const u=unitById(id);if(!u){toast("Unit tidak ditemukan","e");return;}const dest=encodeURIComponent(u.lat+","+u.lng);window.open("https://www.google.com/maps/dir/?api=1&destination="+dest,"_blank","noopener");toast("🗺️ Membuka rute Google Maps ke "+u.nama);}
 
-async function loadBoundaries() {
+let boundariesVisible = true;
+let currentGeoJSON = null;
+
+function selectRegion(name) {
+  const menu = document.getElementById('boundMenu');
+  if(menu) menu.classList.remove('show');
+  
+  const fdKab = document.getElementById('fdKab');
+  if(fdKab) fdKab.value = name;
+  onFilterChange();
+  
+  renderBoundaries(name);
+  
+  if (name) {
+    toast('📂 Fokus wilayah: ' + name);
+    const layers = boundariesLayer.getLayers();
+    const target = layers.find(l => l.getTooltip() && l.getTooltip().getContent() === name);
+    if(target && target.getBounds) map.flyToBounds(target.getBounds(), {padding: [50, 50], duration: 1});
+  } else {
+    toast('🌍 Menampilkan seluruh wilayah');
+    fitAll();
+  }
+}
+
+ catch (e) { console.error('Boundaries error:', e); }
+}
+
+function renderBoundaries(filterName) {
+  if (!currentGeoJSON) return;
+  boundariesLayer.clearLayers();
   const regionMeta = {
     '3375': { name: 'Kota Pekalongan', color: '#3B82F6' },
+    '3326': { name: 'Kab. Pekalongan', color: '#10B981' },
+    '3325': { name: 'Kab. Batang', color: '#F59E0B' }
+  };
+  L.geoJSON(currentGeoJSON, {
+    filter: (feat) => {
+      const id = String(feat.properties.id || feat.properties.code || '3325');
+      return !filterName || (regionMeta[id] && regionMeta[id].name === filterName);
+    },
+    style: (feat) => {
+      const id = String(feat.properties.id || feat.properties.code || '3325');
+      const meta = regionMeta[id] || { color: '#64748B' };
+      return {
+        fillColor: meta.color,
+        fillOpacity: filterName ? 0.22 : 0.12,
+        color: meta.color,
+        weight: filterName ? 3 : 2,
+        dashArray: '5, 5'
+      };
+    },
+    onEachFeature: (feat, layer) => {
+      const id = String(feat.properties.id || feat.properties.code || '3325');
+      if(regionMeta[id]) layer.bindTooltip(regionMeta[id].name, { sticky: true, direction: 'top' });
+    }
+  }).addTo(boundariesLayer);
+  boundariesLayer.getLayers().forEach(l => { if(l.bringToBack) l.bringToBack(); });
+}const dest=encodeURIComponent(u.lat+','+u.lng);window.open('https://www.google.com/maps/dir/?api=1&destination='+dest,'_blank','noopener');toast('🗺️ Membuka rute Google Maps ke '+u.nama);}
+
+,
     '3326': { name: 'Kab. Pekalongan', color: '#10B981' },
     '3325': { name: 'Kab. Batang', color: '#F59E0B' }
   };
@@ -2547,5 +2606,5 @@ function cetakMon(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;cons
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2818da30f0c4717',t:'MTc4NjIyMzkwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a285d5928f8bff91',t:'MTc4NjI2ODc5Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2818da30f0c4717',t:'MTc4NjIyMzkwMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a285e6fc48e1fd9a',t:'MTc4NjI2OTUwNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
