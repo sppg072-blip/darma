@@ -1,0 +1,15 @@
+{
+  "name": "simon-mbg-worker",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 create simon-mbg",
+    "db:schema:local": "wrangler d1 execute simon-mbg --local --file=schema.sql",
+    "db:schema:remote": "wrangler d1 execute simon-mbg --remote --file=schema.sql"
+  },
+  "devDependencies": {
+    "wrangler": "^3.90.0"
+  }
+}
