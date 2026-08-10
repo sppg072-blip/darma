@@ -3034,7 +3034,7 @@ function recFormData(jenis,mode){
   }
   return {unitId:u?u.id:'',tgl:'',petugas:'',jenis:jenis,formType:formType,form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}};
 }
-function fieldVal(v,filled){if(Array.isArray(v))return filled?(v.join('; ')):'';if(v&&typeof v==='object')return '';return filled?(v||''):'';}
+function fieldVal(fld,v,filled){if(!filled)return '';if(fld&&fld.type==='photo')return v?'✓ Foto Terlampir (Lihat Gambar di Bawah)':'-';if(fld&&(fld.type==='url'||fld.type==='link'))return v?('Link: '+v):'-';if(Array.isArray(v))return v.join('; ');if(v&&typeof v==='object')return '';return v||'';}
 function hasFormData(form){const f=(form&&form.fields)||{};return Object.keys(f).some(k=>{const v=f[k];if(v==null||v==='')return false;if(Array.isArray(v))return v.length>0;if(typeof v==='object')return Object.values(v).some(x=>x&&(typeof x!=='object'||Object.values(x).some(z=>z)));return true;});}
 function gridPdf(doc,fld,data,filled,y,PH){
   const d=data||{};
@@ -3130,7 +3130,7 @@ function generateFormPdf(jenis,filled,rec){
       const ng=sec.fields.filter(fld=>fld.type!=='g');
       if(ng.length){
         doc.autoTable({startY:y,head:[['No','Pertanyaan','Jawaban']],
-          body:ng.map((fld,i)=>[String(i+1),pdfSafe(fld.label)+(fld.unit?' ('+fld.unit+')':''),pdfSafe(fieldVal(fields[fld.id],filled))]),
+          body:ng.map((fld,i)=>[String(i+1),pdfSafe(fld.label)+(fld.unit?' ('+fld.unit+')':''),pdfSafe(fieldVal(fld,fields[fld.id],filled))]),
           styles:{fontSize:7.5,cellPadding:1.5,lineWidth:0.1,lineColor:[180,180,180]},headStyles:TBL_HEAD,
           columnStyles:{0:{cellWidth:8,halign:'center'},1:{cellWidth:85}},
           didParseCell:d=>{if(d.section==='body'&&d.column.index===2&&d.cell.raw){d.cell.styles.fontStyle='bold';}}});
@@ -3138,7 +3138,20 @@ function generateFormPdf(jenis,filled,rec){
       }
       sec.fields.filter(fld=>fld.type==='g').forEach(fld=>{y=gridPdf(doc,fld,fields[fld.id],filled,y,PH);});
     });
-    if(filled&&rec&&rec.hasil){y=formTitle(doc,'Status Monitoring',y,PH);doc.autoTable({startY:y,body:[[{content:'Status: '+(HASIL_META[rec.hasil]?HASIL_META[rec.hasil].label:rec.hasil),styles:{fontStyle:'bold',fontSize:10,halign:'center',textColor:[200,16,46]}}]],theme:'grid'});}
+    if(filled&&rec&&rec.hasil){y=formTitle(doc,'Status Monitoring',y,PH);doc.autoTable({startY:y,body:[[{content:'Status: '+(HASIL_META[rec.hasil]?HASIL_META[rec.hasil].label:rec.hasil),styles:{fontStyle:'bold',fontSize:10,halign:'center',textColor:[200,16,46]}}]],theme:'grid'});y=doc.lastAutoTable.finalY+6;}
+    const fotoData = fields.sp_foto_kegiatan || fields.sp205_foto;
+    if (filled && fotoData && String(fotoData).startsWith('data:image')) {
+      if (y > PH - 80) { doc.addPage(); y = 20; }
+      y = formTitle(doc, 'Dokumentasi Foto Kegiatan', y, PH);
+      try {
+        doc.addImage(fotoData, 'JPEG', 14, y, 90, 65);
+        y += 70;
+      } catch(e) {
+        doc.setFontSize(8);
+        doc.text('(Foto dokumentasi tersimpan di sistem)', 14, y + 5);
+        y += 10;
+      }
+    }
   }
   pdfFoot(doc);
   doc.save('DARMA_Form_'+formType+'_'+(filled?'Terisi':'Kosong')+'_'+(tgl||new Date().toISOString().slice(0,10))+'.pdf');
@@ -3383,9 +3396,12 @@ async function generateFormDocx(jenis, filled, rec) {
       ]
     }));
   } else {
-    // --- SPPG / NAKER (Simplified for now, as focus is KDMP) ---
     children.push(new Paragraph({ text: 'LAPORAN MONITORING ' + jenis, bold: true }));
     children.push(new Paragraph({ text: 'Unit: ' + (u?u.nama:'-') }));
+    if (f.fields) {
+      if (f.fields.sp_link_lampiran) children.push(new Paragraph({ text: 'Link Lampiran: ' + f.fields.sp_link_lampiran }));
+      if (f.fields.sp_foto_kegiatan) children.push(new Paragraph({ text: 'Dokumentasi Foto: Terlampir di sistem (Gambar Foto Kegiatan)' }));
+    }
   }
 
   const doc = new Document({
@@ -3414,5 +3430,5 @@ function cetakMonDocx(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28d3ad33f44f8c4',t:'MTc4NjM0NjM0MA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28d61378e02ff81',t:'MTc4NjM0NzkxMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
