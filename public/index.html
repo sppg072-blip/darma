@@ -357,17 +357,71 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidde
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
 /* stat boxes */
-.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
-.sbox{border-radius:13px;padding:11px 12px;position:relative;overflow:hidden;border:1px solid var(--border);background:var(--bg2);transition:var(--tr);}
-.sbox:hover{transform:translateY(-2px);box-shadow:var(--sh);}
-.sbox::after{content:'';position:absolute;right:-12px;bottom:-12px;width:52px;height:52px;border-radius:50%;opacity:.12;}
-.snum{font-size:21px;font-weight:900;line-height:1.1;}
-.slbl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-top:2px;}
-.sico{position:absolute;top:9px;right:11px;font-size:19px;}
-.sbox.r .snum{color:var(--sppg);} .sbox.r::after{background:var(--sppg);}
-.sbox.b .snum{color:var(--kdmp);} .sbox.b::after{background:var(--kdmp);}
-.sbox.g .snum{color:var(--ok);} .sbox.g::after{background:var(--ok);}
-.sbox.o .snum{color:var(--brand);} .sbox.o::after{background:var(--brand);}
+.sgrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+@media (min-width: 721px) {
+  .sgrid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+.sbox {
+  border-radius: 14px;
+  padding: 12px 14px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  transition: var(--tr);
+}
+.sbox:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sh);
+}
+.sbox::after {
+  content: '';
+  position: absolute;
+  right: -12px;
+  bottom: -12px;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  opacity: .12;
+}
+.snum {
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+.slbl {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--text2);
+  margin-top: 3px;
+}
+.ssub {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--text3);
+  margin-top: 2px;
+}
+.sico {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-size: 19px;
+}
+.sbox.r .snum { color: var(--sppg); } .sbox.r::after { background: var(--sppg); }
+.sbox.b .snum { color: var(--kdmp); } .sbox.b::after { background: var(--kdmp); }
+.sbox.g .snum { color: var(--ok); } .sbox.g::after { background: var(--ok); }
+.sbox.o .snum { color: var(--brand); } .sbox.o::after { background: var(--brand); }
+.sbox.y .snum { color: var(--warn); } .sbox.y::after { background: var(--warn); }
+.sbox.p .snum { color: #64748b; } .sbox.p::after { background: #64748b; }
 
 .sec-title{font-size:10px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.7px;margin:14px 0 8px;display:flex;align-items:center;gap:6px;}
 .sec-title i{color:var(--brand);}
@@ -1047,10 +1101,18 @@ textarea.fc {
   <div class="tcont on" id="tab-dash">
     <div id="dashBanner"></div>
     <div class="sgrid">
-      <div class="sbox r"><div class="snum" id="stSPPG">0</div><div class="slbl">SPPG / Dapur MBG</div><span class="sico">🍳</span></div>
-      <div class="sbox b"><div class="snum" id="stKDMP">0</div><div class="slbl">KDMP Koperasi</div><span class="sico">🏪</span></div>
-      <div class="sbox g"><div class="snum" id="stOper">0</div><div class="slbl">Unit Operasional</div><span class="sico">✅</span></div>
-      <div class="sbox o"><div class="snum" id="stMon">0</div><div class="slbl">Total Monitoring</div><span class="sico">📋</span></div>
+      <!-- 1. SPPG -->
+      <div class="sbox r" title="Total Dapur MBG Terdaftar"><div class="snum" id="stSPPG">0</div><div class="slbl">SPPG / Dapur MBG</div><span class="sico">🍳</span></div>
+      <!-- 2. KDMP -->
+      <div class="sbox b" title="Total Koperasi Terdaftar"><div class="snum" id="stKDMP">0</div><div class="slbl">KDMP Koperasi</div><span class="sico">🏪</span></div>
+      <!-- 3. MONITORING -->
+      <div class="sbox o" title="Total Catatan Monitoring Tersimpan"><div class="snum" id="stMon">0</div><div class="slbl">Total Monitoring</div><span class="sico">📋</span></div>
+      <!-- 4. AKTIF / OPERASIONAL -->
+      <div class="sbox g" title="Unit Berstatus Aktif / Operasional"><div class="snum" id="stOper">0</div><div class="slbl">Aktif / Operasional</div><div class="ssub" id="stOperSub">—</div><span class="sico">✅</span></div>
+      <!-- 5. DALAM PERSIAPAN -->
+      <div class="sbox y" title="Unit Berstatus Dalam Persiapan"><div class="snum" id="stPrep">0</div><div class="slbl">Dalam Persiapan</div><div class="ssub" id="stPrepSub">—</div><span class="sico">🟡</span></div>
+      <!-- 6. RENCANA / USULAN -->
+      <div class="sbox p" title="Unit Berstatus Rencana / Usulan"><div class="snum" id="stPlan">0</div><div class="slbl">Rencana / Usulan</div><div class="ssub" id="stPlanSub">—</div><span class="sico">⚪</span></div>
     </div>
 
     <div class="dash-charts-grid">
@@ -2463,11 +2525,18 @@ function renderDash(){
   if(dbBanner)dbBanner.innerHTML=(API.mode==='cloud'&&CU&&CU.role==='admin'&&DB.units.length===0)?'<button class="btn bp bblk" style="margin-bottom:10px" onclick="loadSampleCloud()"><i class="fas fa-cloud-upload-alt"></i> Database cloud masih kosong — Muat Data Contoh</button>':'';
   const s=list.filter(u=>u.jenis==='SPPG').length;
   const k=list.filter(u=>u.jenis==='KDMP').length;
-  const oper=list.filter(u=>u.status==='aktif').length;
+  const oper=list.filter(u=>u.status==='aktif');
+  const prep=list.filter(u=>u.status==='persiapan');
+  const plan=list.filter(u=>u.status==='rencana');
   document.getElementById('stSPPG').textContent=s;
   document.getElementById('stKDMP').textContent=k;
-  document.getElementById('stOper').textContent=oper;
   document.getElementById('stMon').textContent=DB.monitoring.filter(m=>list.some(u=>u.id===m.unitId)).length;
+  document.getElementById('stOper').textContent=oper.length;
+  const operSub=document.getElementById('stOperSub');if(operSub)operSub.textContent=`${oper.filter(u=>u.jenis==='SPPG').length} SPPG · ${oper.filter(u=>u.jenis==='KDMP').length} KDMP`;
+  const prepEl=document.getElementById('stPrep');if(prepEl)prepEl.textContent=prep.length;
+  const prepSub=document.getElementById('stPrepSub');if(prepSub)prepSub.textContent=`${prep.filter(u=>u.jenis==='SPPG').length} SPPG · ${prep.filter(u=>u.jenis==='KDMP').length} KDMP`;
+  const planEl=document.getElementById('stPlan');if(planEl)planEl.textContent=plan.length;
+  const planSub=document.getElementById('stPlanSub');if(planSub)planSub.textContent=`${plan.filter(u=>u.jenis==='SPPG').length} SPPG · ${plan.filter(u=>u.jenis==='KDMP').length} KDMP`;
 
   // progres cakupan
   const sppgAll = list.filter(u=>u.jenis==='SPPG'), sppgMon = sppgAll.filter(u=>monsOf(u.id).length>0);
@@ -3928,5 +3997,5 @@ function cetakMonDocx(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a29048985fb06d1a',t:'MTc4NjM3ODM2MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2906905a915e785',t:'MTc4NjM3OTY4OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
