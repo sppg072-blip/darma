@@ -46,10 +46,105 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidde
 .bp-item{padding:9px 12px;font-size:11px;font-weight:700;color:#fff;cursor:pointer;transition:var(--tr);border-radius:8px;background:rgba(255,255,255,0.08);display:flex;align-items:center;gap:8px;}
 .bp-item:hover{background:var(--brand);color:#fff;transform:translateX(-3px);}
 
-/* legend */
-#legendBox{position:fixed;left:12px;bottom:16px;z-index:120;background:var(--bg2);border:1px solid var(--border);border-radius:12px;box-shadow:var(--sh2);padding:10px 12px;max-width:250px;opacity:0;pointer-events:none;transition:opacity .3s;}
-#legendBox.visible{opacity:1;pointer-events:auto;}
-.lg-title{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);margin-bottom:7px;}
+/* legend (collapsible) */
+#legendBox {
+  position: fixed;
+  left: 12px;
+  bottom: 16px;
+  z-index: 120;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--sh2);
+  width: 255px;
+  max-width: 92vw;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s, transform .2s ease;
+  overflow: hidden;
+}
+#legendBox.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+#legendBox.collapsed {
+  width: auto;
+}
+#legendBox.collapsed .lg-body {
+  display: none;
+}
+.lg-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 12px;
+  cursor: pointer;
+  user-select: none;
+  background: var(--bg2);
+  border-bottom: 1px solid transparent;
+  transition: var(--tr);
+}
+.lg-header:hover {
+  background: var(--bg3);
+}
+#legendBox:not(.collapsed) .lg-header {
+  border-bottom-color: var(--border);
+  background: var(--bg3);
+}
+.lg-head-title {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.lg-arrow-icon {
+  font-size: 11px;
+  color: var(--text3);
+  transition: transform .25s ease;
+}
+#legendBox:not(.collapsed) .lg-arrow-icon {
+  transform: rotate(180deg);
+}
+.lg-body {
+  padding: 10px 12px;
+}
+.lg-sec-title {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--text3);
+  margin-bottom: 6px;
+}
+.lg-filter-chips {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.lg-chip {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text2);
+  cursor: pointer;
+  transition: var(--tr);
+}
+.lg-chip:hover {
+  border-color: var(--brand);
+  color: var(--text);
+}
+.lg-chip.on {
+  background: var(--brand-bg);
+  border-color: var(--brand);
+  color: var(--brand);
+}
 .lg-row{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text);margin-bottom:5px;cursor:pointer;}
 .lg-row:hover .lg-t{color:var(--brand);font-weight:700;}
 .lg-dot{width:16px;height:16px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:900;border:2.5px solid #fff;box-shadow:0 0 0 2px var(--ok);}
@@ -69,6 +164,24 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidde
 .mk.kdmp{background:linear-gradient(135deg,#991B1B,#EF4444);}
 .mk.kdmp::before{border-top-color:#EF4444;}
 .mk.kdmp::after{content:'';position:absolute;inset:2px;border-radius:50%;border:1.5px solid rgba(255,255,255,.5);pointer-events:none;}
+.mk.dimonitor{background:linear-gradient(135deg,#15803d,#22c55e);}
+.mk.dimonitor::before{border-top-color:#22c55e;}
+/* 0 - 5 cincin frekuensi kunjungan */
+.mk.ring-1 {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4.5px #22c55e;
+}
+.mk.ring-2 {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4.5px #22c55e, 0 0 0 6.5px #fff, 0 0 0 9px #16a34a;
+}
+.mk.ring-3 {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4.5px #22c55e, 0 0 0 6.5px #fff, 0 0 0 9px #16a34a, 0 0 0 11px #fff, 0 0 0 13.5px #15803d;
+}
+.mk.ring-4 {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4.5px #22c55e, 0 0 0 6.5px #fff, 0 0 0 9px #16a34a, 0 0 0 11px #fff, 0 0 0 13.5px #15803d, 0 0 0 15.5px #fff, 0 0 0 18px #14532d;
+}
+.mk.ring-5 {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4.5px #22c55e, 0 0 0 6.5px #fff, 0 0 0 9px #16a34a, 0 0 0 11px #fff, 0 0 0 13.5px #15803d, 0 0 0 15.5px #fff, 0 0 0 18px #14532d, 0 0 0 20px #fff, 0 0 0 22.5px #052e16;
+}
 
 /* Gelombang berdasarkan status */
 .mk.baik{box-shadow:0 0 0 2px var(--ok); animation:waveOk 2.5s infinite;}
@@ -572,19 +685,55 @@ textarea.fc{resize:vertical;min-height:56px;}
   <button class="mbtn" onclick="exportXlsx()"><i class="fas fa-file-excel" style="color:var(--ok)"></i> Export Excel</button>
 </div>
 
-<!-- legend -->
-<div id="legendBox">
-  <div class="lg-title">Legenda Peta</div>
-  <div class="lg-row" onclick="quickJenis('')"><div class="lg-dot" style="background:var(--text2);box-shadow:0 0 0 2px var(--border)"><i class="fas fa-list-ul"></i></div><span class="lg-t">Tampilkan Semua Unit</span></div>
-  <div class="lg-row" onclick="quickJenis('SPPG')"><div class="lg-dot" style="background:linear-gradient(135deg,#1E3A8A,#3B82F6);box-shadow:0 0 0 2px var(--ok)"><i class="fas fa-utensils"></i></div><span class="lg-t">SPPG — Dapur MBG (biru)</span></div>
-  <div class="lg-row" onclick="quickJenis('KDMP')"><div class="lg-dot" style="background:linear-gradient(135deg,#991B1B,#EF4444);box-shadow:0 0 0 2px var(--ok)"><i class="fas fa-store"></i></div><span class="lg-t">KDMP — Koperasi Desa Merah Putih (merah-putih)</span></div>
-  <div class="lg-sub">
-    <b style="color:var(--text2)">Cincin marker = hasil monitoring terakhir:</b><br>
-    <span style="color:var(--ok)">●</span> Baik &nbsp;
-    <span style="color:var(--warn)">●</span> Perlu Perbaikan &nbsp;
-    <span style="color:var(--bad)">●</span> Kritis &nbsp;
-    <span style="color:var(--idle)">●</span> Belum<br>
-    Klik bar pada legenda SPPG/KDMP untuk filter cepat.
+<!-- legend (collapsible) -->
+<div id="legendBox" class="legend-box collapsed" style="max-height:75vh;overflow-y:auto">
+  <div class="lg-header" onclick="toggleLegendMenu()" title="Klik untuk membuka/menutup legenda">
+    <div class="lg-head-title">
+      <i class="fas fa-map-marked-alt" style="color:var(--brand)"></i>
+      <span>Legenda & Filter Peta</span>
+    </div>
+    <i class="fas fa-chevron-up lg-arrow-icon" id="lgToggleArr"></i>
+  </div>
+  <div class="lg-body" id="legendBody">
+    <!-- 1. FILTER WILAYAH MURNI -->
+    <div class="lg-sec-title">1. Wilayah Murni (Warna Asli Biru & Merah):</div>
+    <div class="lg-filter-chips">
+      <button type="button" class="lg-chip lg-chip-view" id="lfc_murni_all" onclick="setMapView('murni', '', 'all')">🗺️ Semua (Biru/Merah)</button>
+      <button type="button" class="lg-chip lg-chip-view" id="lfc_murni_sppg" onclick="setMapView('murni', 'SPPG', 'all')">🔵 Seluruh SPPG</button>
+      <button type="button" class="lg-chip lg-chip-view" id="lfc_murni_kdmp" onclick="setMapView('murni', 'KDMP', 'all')">🔴 Seluruh KDMP</button>
+    </div>
+
+    <!-- 2. FILTER PROGRES MONITORING -->
+    <div class="lg-sec-title" style="margin-top:8px">2. Progres Monitoring (Ada Warna Hijau):</div>
+    <div class="lg-filter-chips">
+      <button type="button" class="lg-chip lg-chip-view on" id="lfc_prog_all" onclick="setMapView('progres', '', 'all')">🏷️ Semua Progres</button>
+      <button type="button" class="lg-chip lg-chip-view" id="lfc_prog_mon" onclick="setMapView('progres', '', 'mon')">🟢 Sudah Dimonitor</button>
+      <button type="button" class="lg-chip lg-chip-view" id="lfc_prog_unmon_sppg" onclick="setMapView('progres', '', 'unmon_sppg')">🔵 SPPG Belum</button>
+      <button type="button" class="lg-chip lg-chip-view" id="lfc_prog_unmon_kdmp" onclick="setMapView('progres', '', 'unmon_kdmp')">🔴 KDMP Belum</button>
+    </div>
+
+    <!-- 3. FILTER FREKUENSI MINIMAL (>= X KALI) -->
+    <div class="lg-sec-title" style="margin-top:8px">3. Filter Frekuensi (Minimal &ge; X Kali):</div>
+    <div class="lg-filter-chips">
+      <button type="button" class="lg-chip lg-chip-freq on" id="lff_all" onclick="setFreqFilter(null)">Semua</button>
+      <button type="button" class="lg-chip lg-chip-freq" id="lff_0" onclick="setFreqFilter(0)">○ 0 Kali</button>
+      <button type="button" class="lg-chip lg-chip-freq" id="lff_1" onclick="setFreqFilter(1)">◎ 1+ Kali</button>
+      <button type="button" class="lg-chip lg-chip-freq" id="lff_2" onclick="setFreqFilter(2)">◎◎ 2+ Kali</button>
+      <button type="button" class="lg-chip lg-chip-freq" id="lff_3" onclick="setFreqFilter(3)">◎◎◎ 3+ Kali</button>
+      <button type="button" class="lg-chip lg-chip-freq" id="lff_4" onclick="setFreqFilter(4)">◎◎◎◎ 4+ Kali</button>
+      <button type="button" class="lg-chip lg-chip-freq" id="lff_5" onclick="setFreqFilter(5)">◎◎◎◎◎ 5+ Kali</button>
+    </div>
+
+    <!-- 4. LEGENDA CINCIN FREKUENSI -->
+    <div class="lg-sec-title" style="margin-top:8px">Legenda Cincin Frekuensi Kunjungan:</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:10px;color:var(--text2);line-height:1.4">
+      <div>○ Tanpa Cincin = <b>0 Kali</b></div>
+      <div>◎ 1 Cincin = <b>1 Kali</b></div>
+      <div>◎◎ 2 Cincin = <b>2 Kali</b></div>
+      <div>◎◎◎ 3 Cincin = <b>3 Kali</b></div>
+      <div>◎◎◎◎ 4 Cincin = <b>4 Kali</b></div>
+      <div>◎◎◎◎◎ 5 Cincin = <b>5+ Kali</b></div>
+    </div>
   </div>
 </div>
 
@@ -1546,7 +1695,7 @@ let map, layerStreet, layerSat, layerMode='street', boundariesLayer;
 let markers = [];
 let pendingDel = null, dtCurrent = null, editingJenis = 'SPPG';
 let tempMarker = null, pickMode = false; // pin 📍 pemilihan koordinat unit di peta
-let FS = {jenis:'', hasil:'', kab:'', search:''};
+let FS = {jenis:'', hasil:'', kab:'', search:'', statusMon:'all', modeView:'progres', minFreq:null};
 const LS_KEY = 'darma_mbg_v1';
 /* ============================================================
    API / SYNC LAYER  (Cloudflare D1 via Worker — fallback lokal)
@@ -1676,6 +1825,15 @@ function filteredUnits(){
     if(FS.jenis&&u.jenis!==FS.jenis)return false;
     if(FS.kab&&u.kab!==FS.kab)return false;
     if(FS.hasil&&unitHasil(u)!==FS.hasil)return false;
+    const count = monsOf(u.id).length;
+    if(FS.statusMon==='mon' && count===0) return false;
+    if(FS.statusMon==='unmon_sppg' && (u.jenis!=='SPPG' || count>0)) return false;
+    if(FS.statusMon==='unmon_kdmp' && (u.jenis!=='KDMP' || count>0)) return false;
+    if(FS.statusMon==='unmon' && count>0) return false;
+    if(FS.minFreq !== null && FS.minFreq !== undefined){
+      if(FS.minFreq === 0 && count !== 0) return false;
+      if(FS.minFreq > 0 && count < FS.minFreq) return false;
+    }
     if(q){const s=(u.nama+' '+u.desa+' '+u.kec+' '+u.kab+' '+u.alamat+' '+(u.ref||'')).toLowerCase();if(!s.includes(q))return false;}
     return true;
   });
@@ -1685,8 +1843,18 @@ function renderMap(){
   const list=filteredUnits();
   list.forEach(u=>{
     const h=unitHasil(u);
+    const count = monsOf(u.id).length;
+    const isMon = count > 0;
+    let bgClass = u.jenis.toLowerCase();
+    let ringClass = '';
+    if(FS.modeView === 'progres'){
+      if(isMon){
+        bgClass = 'dimonitor';
+        ringClass = 'ring-' + Math.min(count, 5);
+      }
+    }
     const icon=L.divIcon({
-      html:`<div class="mk ${u.jenis.toLowerCase()} ${h}"><i class="fas ${u.jenis==='SPPG'?'fa-utensils':'fa-store'}"></i></div>`,
+      html:`<div class="mk ${bgClass} ${ringClass}" title="${esc(u.nama)} (${isMon ? count + 'x kunjungan monitoring' : 'Belum Dimonitor'})"><i class="fas ${u.jenis==='SPPG'?'fa-utensils':'fa-store'}"></i></div>`,
       className:'',iconSize:[32,38],iconAnchor:[16,38],popupAnchor:[0,-36]
     });
     const mk=L.marker([u.lat,u.lng],{icon}).addTo(map);
@@ -1828,6 +1996,13 @@ function onFilterChange(){
 }
 function clearFilters(){
   ['fdJenis','fdHasil','fdKab','fdSearch'].forEach(id=>document.getElementById(id).value='');
+  FS = {jenis:'', kab:'', hasil:'', search:'', statusMon:'all', modeView:'progres', minFreq:null};
+  document.querySelectorAll('#legendBox .lg-chip-view').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('#legendBox .lg-chip-freq').forEach(b => b.classList.remove('on'));
+  const defProg = document.getElementById('lfc_prog_all');
+  if(defProg) defProg.classList.add('on');
+  const defFreq = document.getElementById('lff_all');
+  if(defFreq) defFreq.classList.add('on');
   renderBoundaries(''); // Reset boundaries arsir
   onFilterChange();clearSel();fitAll();
 }
@@ -1842,6 +2017,46 @@ function quickJenis(j){
     onFilterChange();
     fitAll();
   }
+}
+function toggleLegendMenu() {
+  const box = document.getElementById('legendBox');
+  if (box) box.classList.toggle('collapsed');
+}
+function setMapView(mode, jenis, statusMon) {
+  FS.modeView = mode || 'progres';
+  FS.jenis = jenis || '';
+  FS.statusMon = statusMon || 'all';
+
+  document.querySelectorAll('#legendBox .lg-chip-view').forEach(b => b.classList.remove('on'));
+  if (mode === 'murni') {
+    const id = jenis === 'SPPG' ? 'lfc_murni_sppg' : jenis === 'KDMP' ? 'lfc_murni_kdmp' : 'lfc_murni_all';
+    const btn = document.getElementById(id);
+    if (btn) btn.classList.add('on');
+  } else {
+    const id = statusMon === 'mon' ? 'lfc_prog_mon' : statusMon === 'unmon_sppg' ? 'lfc_prog_unmon_sppg' : statusMon === 'unmon_kdmp' ? 'lfc_prog_unmon_kdmp' : 'lfc_prog_all';
+    const btn = document.getElementById(id);
+    if (btn) btn.classList.add('on');
+  }
+
+  const fdJenis = document.getElementById('fdJenis');
+  if (fdJenis) fdJenis.value = FS.jenis;
+
+  renderAll();
+  const msg = mode === 'murni'
+    ? `🗺️ Mode Murni: ${jenis ? 'Seluruh ' + jenis : 'Semua Unit (Biru & Merah)'}`
+    : `🏷️ Mode Monitoring: ${statusMon === 'mon' ? 'Sudah Dimonitor' : statusMon === 'unmon_sppg' ? 'SPPG Belum Dimonitor' : statusMon === 'unmon_kdmp' ? 'KDMP Belum Dimonitor' : 'Semua Unit (Hijau/Biru/Merah)'}`;
+  toast(msg);
+}
+
+function setFreqFilter(minFreq) {
+  FS.minFreq = minFreq;
+  document.querySelectorAll('#legendBox .lg-chip-freq').forEach(b => b.classList.remove('on'));
+  const fid = minFreq === null ? 'lff_all' : 'lff_' + minFreq;
+  const fbtn = document.getElementById(fid);
+  if (fbtn) fbtn.classList.add('on');
+  renderAll();
+  const label = minFreq === null ? '🏷️ Semua frekuensi kunjungan' : minFreq === 0 ? '○ Hanya unit dengan 0 kunjungan (Belum)' : `◎ Minimal ${minFreq} kali kunjungan`;
+  toast(label);
 }
 function clearSel(){document.getElementById('selCard').classList.remove('visible');}
 function selectUnit(id){
@@ -3430,5 +3645,5 @@ function cetakMonDocx(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28d61378e02ff81',t:'MTc4NjM0NzkxMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28dda508cc623a5',t:'MTc4NjM1Mjg3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
