@@ -1177,9 +1177,6 @@ textarea.fc {
   <!-- TAB: HISTORI -->
   <div class="tcont" id="tab-hist">
     <div style="display:flex;gap:6px;margin-bottom:9px;flex-wrap:wrap">
-  <!-- TAB: HISTORI -->
-  <div class="tcont" id="tab-hist">
-    <div style="display:flex;gap:6px;margin-bottom:9px;flex-wrap:wrap">
       <select id="fHUnit" class="fc" style="flex:2;min-width:140px" onchange="renderHist()"><option value="">Semua Unit</option></select>
       <input type="date" id="fHTgl" class="fc" style="flex:1;min-width:130px" onchange="renderHist()"/>
       <button class="btn bx" onclick="document.getElementById('fHUnit').value='';document.getElementById('fHTgl').value='';renderHist();" title="Reset Filter">✕ Reset</button>
@@ -3009,7 +3006,8 @@ function refreshUnitSelect(){
   const hcur=hsel.value;
   hsel.innerHTML='<option value="">Semua Unit</option>';
   [...DB.units].sort((a,b)=>a.nama.localeCompare(b.nama)).forEach(u=>hsel.innerHTML+=`<option value="${u.id}">${esc(u.nama)}</option>`);
-  hsel.value=hcur;
+  if(hcur&&[...hsel.options].some(o=>o.value===hcur)) hsel.value=hcur;
+  else hsel.value='';
 }
 function onUnitPick(){
   const u=unitById(getVal('rUnit'));
@@ -3090,19 +3088,46 @@ function renderHist(){
   if(fu)list=list.filter(m=>m.unitId===fu);
   if(ft)list=list.filter(m=>m.tgl===ft);
   const el=document.getElementById('histList');
-  el.innerHTML=list.length?list.map(m=>{
+  if(!el)return;
+  if(!DB.monitoring.length){
+    el.innerHTML=`<div class="empty" style="padding:40px 10px">
+      <i class="fas fa-inbox"></i>
+      <p style="font-weight:700;margin-bottom:8px">Belum ada riwayat monitoring tersimpan.</p>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap">
+        <button class="btn bp bsm" onclick="loadSampleCloud()"><i class="fas fa-database"></i> Muat Data Contoh</button>
+        <button class="btn bs bsm" onclick="goTab('rekam')"><i class="fas fa-plus"></i> Buat Monitoring Baru</button>
+      </div>
+    </div>`;
+    return;
+  }
+  if(!list.length){
+    el.innerHTML=`<div class="empty" style="padding:30px 10px">
+      <i class="fas fa-filter"></i>
+      <p>Tidak ada riwayat monitoring untuk filter unit/tanggal yang dipilih.</p>
+      <button class="btn bx bsm" style="margin-top:8px" onclick="document.getElementById('fHUnit').value='';document.getElementById('fHTgl').value='';renderHist();">✕ Reset Filter Histori</button>
+    </div>`;
+    return;
+  }
+  el.innerHTML=list.map(m=>{
     const u=unitById(m.unitId);
     if(!u)return '';
     const scoreTag=(m.form&&m.jenis==='KDMP'&&m.form.avg!=null)?`<span class="kchip" style="background:#1E3A8A;color:#fff;margin-right:4px">⭐ ${m.form.avg}</span>`:'';
+    const fotoVal = (m.form && m.form.fields && (m.form.fields.sp_foto_kegiatan || m.form.fields.sp205_foto));
+    const fotoHtml = fotoVal ? `<div style="margin-top:8px"><img src="${fotoVal}" style="max-height:160px;max-width:100%;border-radius:8px;border:1px solid var(--border)"/></div>` : '';
+    const linkVal = (m.form && m.form.fields && m.form.fields.sp_link_lampiran);
+    const linkHtml = linkVal ? `<div style="margin-top:6px;font-size:11px"><a href="${esc(linkVal)}" target="_blank" rel="noopener noreferrer" style="color:var(--brand);font-weight:700;display:inline-flex;align-items:center;gap:5px"><i class="fas fa-external-link-alt"></i> <b>Link Lampiran Berkas</b></a></div>` : '';
+    const pTxt = [m.petugas, (m.form && m.form.fields && m.form.fields.sp109) ? '🎙️ '+m.form.fields.sp109 : ''].filter(Boolean).join(' · ');
     return `<div class="hcard" onclick="openDetail('${u.id}')">
       <div class="hc-top">
         <div class="kbadge ${u.jenis.toLowerCase()} baik">${u.jenis==='SPPG'?'S':'K'}</div>
         <div class="hc-name">${esc(u.nama)}</div>
         ${scoreTag}<div class="kchip baik">🟢 Sudah Dimonitor</div>
       </div>
-      <div class="hc-date">📅 ${fmtD(m.tgl)} · 👤 ${esc(m.petugas)}</div>
+      <div class="hc-date">📅 ${fmtD(m.tgl)} · 👤 ${esc(pTxt || m.petugas || 'Petugas')}</div>
       <div class="hc-aspects">${monDetailAspects(m)}</div>
       ${m.temuan?`<div class="hc-temuan">🔎 ${esc(m.temuan)}</div>`:''}
+      ${linkHtml}
+      ${fotoHtml}
       <div class="hc-actions" onclick="event.stopPropagation()">
         <button class="btn bd bsm" onclick="cetakMon('${m.id}')"><i class="fas fa-file-pdf"></i> PDF</button>
         <button class="btn bs bsm" onclick="cetakMonDocx('${m.id}')"><i class="fas fa-file-word"></i> DOCX</button>
@@ -3111,7 +3136,7 @@ function renderHist(){
         ${CU&&CU.role==='admin'?`<button class="btn bd bsm" onclick="confirmDelMon('${m.id}')"><i class="fas fa-trash"></i> Hapus</button>`:''}
       </div>
     </div>`;
-  }).join(''):'<div class="empty"><i class="fas fa-inbox"></i><p>Belum ada riwayat monitoring sesuai filter.</p></div>';
+  }).join('');
 }
 function openEditMon(id){
   const m=DB.monitoring.find(x=>x.id===id);if(!m)return;
@@ -3903,5 +3928,5 @@ function cetakMonDocx(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a29018348aaee782',t:'MTc4NjM3NjM3OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a29048985fb06d1a',t:'MTc4NjM3ODM2MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
