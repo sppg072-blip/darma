@@ -702,6 +702,133 @@ textarea.fc{resize:vertical;min-height:56px;}
   }
 }
 
+/* ============ PENINGKATAN UKURAN HURUF & ISIAN SIDEBAR (AGAK BESAR BIAR JELAS) ============ */
+/* 1. Tab Bar di Atas Sidebar */
+.tbtn {
+  font-size: 12px !important;
+  padding: 11px 4px !important;
+}
+.tbtn i {
+  font-size: 16px !important;
+  margin-bottom: 2px;
+}
+
+/* 2. Label dan Input Form (.fl, .fc, select.fc, textarea.fc, .ms-trigger) */
+.fl {
+  font-size: 12px !important;
+  letter-spacing: .4px !important;
+  margin-bottom: 5px !important;
+}
+.fc, select.fc, input.fc, textarea.fc, .ms-trigger {
+  font-size: 13.5px !important;
+  padding: 11px 13px !important;
+  border-radius: 11px !important;
+  min-height: 42px !important;
+}
+textarea.fc {
+  min-height: 85px !important;
+  line-height: 1.5 !important;
+}
+
+/* 3. Kuesioner Monitoring (.qitem, .qitxt, .qyn, .qbagian, .sec-title) */
+.sec-title {
+  font-size: 13px !important;
+  margin: 16px 0 10px !important;
+}
+.qbagian {
+  font-size: 13px !important;
+  padding: 10px 14px !important;
+  margin: 14px 0 8px !important;
+}
+.qitem {
+  padding: 10px 12px !important;
+  gap: 12px !important;
+  margin-bottom: 7px !important;
+}
+.qitxt {
+  font-size: 13px !important;
+  line-height: 1.55 !important;
+}
+.qscore-btn {
+  width: 32px !important;
+  height: 32px !important;
+  font-size: 13px !important;
+}
+.qyn {
+  padding: 10px 12px !important;
+  margin-bottom: 6px !important;
+}
+.qyn-txt {
+  font-size: 13px !important;
+  line-height: 1.55 !important;
+}
+.qyn-btn {
+  padding: 7px 16px !important;
+  font-size: 12px !important;
+}
+
+/* 4. Multi-Select Dropdown (.ms-placeholder, .ms-chip, .ms-item) */
+.ms-placeholder {
+  font-size: 13px !important;
+}
+.ms-chip {
+  font-size: 12.5px !important;
+  padding: 3px 9px !important;
+}
+.ms-item {
+  font-size: 13px !important;
+  padding: 8px 10px !important;
+}
+.ms-search {
+  font-size: 12.5px !important;
+  padding: 7px 10px 7px 28px !important;
+}
+
+/* 5. Kartu Master Unit & Histori (.hcard, .hc-name, .hc-date) */
+.hcard {
+  padding: 12px 14px !important;
+}
+.hc-name {
+  font-size: 13.5px !important;
+}
+.hc-date {
+  font-size: 11px !important;
+}
+.hc-temuan {
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+}
+
+/* 6. Tombol Umum (.btn, .fp-reset) */
+.btn {
+  font-size: 13px !important;
+  padding: 10px 14px !important;
+}
+.fp-reset {
+  font-size: 11.5px !important;
+  padding: 5px 10px !important;
+}
+
+/* ============ PENYESUAIAN TAMBAHAN UNTUK PC DAN TAB (LAYAR LEBAR) ============ */
+@media (min-width: 721px) {
+  .fl {
+    font-size: 13px !important;
+  }
+  .fc, select.fc, input.fc, textarea.fc, .ms-trigger {
+    font-size: 14px !important;
+    padding: 12px 14px !important;
+  }
+  .qitxt, .qyn-txt {
+    font-size: 13.5px !important;
+  }
+  .sec-title, .qbagian {
+    font-size: 14px !important;
+  }
+  .hc-name {
+    font-size: 14px !important;
+  }
+}
+
 @media (max-width: 720px) {
   :root {
     --sw: min(95vw, 360px);
@@ -3777,5 +3904,5 @@ function cetakMonDocx(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28f09d80bc6f93b',t:'MTc4NjM2NTMwNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28f163d7baffd91',t:'MTc4NjM2NTgxMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
