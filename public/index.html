@@ -375,6 +375,40 @@ textarea.fc{resize:vertical;min-height:56px;}
 .qgrid th{background:var(--bg3);font-size:8.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--text2);text-align:left;}
 .qgrid td.glab{font-weight:700;color:var(--text);font-size:10px;}
 .qgrid input.ginp{width:100%;border:none;background:transparent;font-size:10px;color:var(--text);outline:none;font-family:inherit;}
+
+/* ============ MULTI-SELECT DROPDOWN DENGAN CHECKBOX (TANPA NOMOR HP) ============ */
+.ms-wrap{position:relative;width:100%;}
+.ms-trigger{display:flex;align-items:center;justify-content:space-between;gap:6px;cursor:pointer;user-select:none;min-height:38px;background:var(--bg2);border:2px solid var(--border);border-radius:10px;padding:6px 10px;transition:var(--tr);}
+.ms-trigger:hover{border-color:var(--brand);}
+.ms-labels{display:flex;flex-wrap:wrap;gap:4px;flex:1;min-width:0;align-items:center;}
+.ms-placeholder{color:var(--text3);font-size:11.5px;}
+.ms-chip{display:inline-flex;align-items:center;gap:4px;background:var(--brand-bg);color:var(--brand);border:1px solid rgba(200,16,46,.25);border-radius:6px;padding:2px 7px;font-size:11px;font-weight:700;max-width:100%;}
+.ms-chip b{cursor:pointer;font-weight:900;padding:0 2px;}
+.ms-chip b:hover{color:var(--bad);}
+.ms-arrow{font-size:11px;color:var(--text3);transition:transform .25s ease;flex-shrink:0;}
+.ms-wrap.open .ms-arrow{transform:rotate(180deg);}
+.ms-wrap.open .ms-trigger{border-color:var(--brand);box-shadow:0 0 0 3px rgba(200,16,46,.15);}
+.ms-dropdown{position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:500;background:var(--bg2);border:2px solid var(--brand);border-radius:12px;box-shadow:var(--sh2);display:none;flex-direction:column;max-height:260px;overflow:hidden;}
+.ms-wrap.open .ms-dropdown{display:flex;animation:fadeIn .2s ease;}
+.ms-head{padding:8px 10px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;gap:6px;align-items:center;}
+.ms-search-wrap{position:relative;flex:1;}
+.ms-search-wrap i{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--text3);}
+.ms-search{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:5px 8px 5px 24px;font-size:11px;color:var(--text);outline:none;}
+.ms-search:focus{border-color:var(--brand);}
+.ms-actions{display:flex;gap:4px;}
+.ms-btn-act{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:4px 7px;font-size:10px;font-weight:700;color:var(--text2);cursor:pointer;transition:var(--tr);}
+.ms-btn-act:hover{color:var(--brand);border-color:var(--brand);}
+.ms-list{overflow-y:auto;padding:4px 6px;max-height:165px;display:flex;flex-direction:column;gap:2px;}
+.ms-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;cursor:pointer;font-size:11.5px;color:var(--text);transition:var(--tr);user-select:none;}
+.ms-item:hover{background:var(--bg3);}
+.ms-item input[type="checkbox"]{width:15px;height:15px;accent-color:var(--brand);cursor:pointer;}
+.ms-name{font-weight:700;}
+.ms-foot{padding:6px 8px;background:var(--bg3);border-top:1px solid var(--border);}
+.ms-custom-wrap{display:flex;gap:5px;}
+.ms-custom-inp{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:10.5px;color:var(--text);outline:none;}
+.ms-custom-btn{background:var(--brand);color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:10.5px;font-weight:700;cursor:pointer;}
+@media (max-width:720px){.rekam-personnel-row{grid-template-columns:1fr!important;}}
+
 .qformtabs{display:flex;gap:8px;margin-bottom:9px;}
 .qformtabs .jopt{padding:8px 6px;}
 .qformtabs .jopt .jt{font-size:11px;}
@@ -676,15 +710,45 @@ textarea.fc{resize:vertical;min-height:56px;}
 
   <!-- TAB: REKAM MONITORING -->
   <div class="tcont" id="tab-rekam">
-    <div class="rekam-top-row">
-      <div class="fg" style="flex:2">
+    <!-- BARIS KUNJUNGAN: UNIT, TANGGAL, PETUGAS TIM -->
+    <div class="rekam-top-row" style="display:grid;grid-template-columns:2fr 1fr 1.5fr;gap:12px;margin-bottom:12px">
+      <div class="fg" style="margin-bottom:0">
         <label class="fl">Unit Dimonitor <span class="rq">*</span></label>
         <select id="rUnit" class="fc" onchange="onUnitPick()"></select>
         <div class="fhint" id="unitInfo">Pilih unit SPPG atau KDMP yang dikunjungi.</div>
       </div>
-      <div class="frow" style="flex:1.5">
-        <div class="fg"><label class="fl">Tanggal Kunjungan <span class="rq">*</span></label><input type="date" id="rTgl" class="fc"/></div>
-        <div class="fg"><label class="fl">Petugas</label><input type="text" id="rPetugas" class="fc" placeholder="Nama petugas"/></div>
+      <div class="fg" style="margin-bottom:0">
+        <label class="fl">Tanggal Kunjungan <span class="rq">*</span></label>
+        <input type="date" id="rTgl" class="fc"/>
+      </div>
+      <div class="fg" style="margin-bottom:0">
+        <label class="fl">Nama Petugas <span class="rq">*</span></label>
+        <div class="ms-wrap" id="wrap_rPetugas">
+          <div class="ms-trigger fc" onclick="toggleMS('rPetugas', event)">
+            <div class="ms-labels" id="lbl_rPetugas"><span class="ms-placeholder">Pilih petugas / input baru...</span></div>
+            <i class="fas fa-chevron-down ms-arrow"></i>
+          </div>
+          <input type="hidden" id="rPetugas" value="" />
+          <div class="ms-dropdown" id="drop_rPetugas" onclick="event.stopPropagation()">
+            <div class="ms-head">
+              <div class="ms-search-wrap">
+                <i class="fas fa-search"></i>
+                <input type="text" class="ms-search" placeholder="Cari nama..." oninput="filterMS('rPetugas', this.value)"/>
+              </div>
+              <div class="ms-actions">
+                <button type="button" class="ms-btn-act" onclick="selectAllMS('rPetugas', true)">✓ Semua</button>
+                <button type="button" class="ms-btn-act" onclick="selectAllMS('rPetugas', false)">✕ Reset</button>
+              </div>
+            </div>
+            <div class="ms-list" id="list_rPetugas"></div>
+            <div class="ms-foot">
+              <div class="ms-custom-wrap">
+                <input type="text" id="cust_rPetugas" placeholder="+ Input nama langsung..." class="ms-custom-inp" onkeydown="if(event.key==='Enter'){addCustomMS('rPetugas');event.preventDefault();}"/>
+                <button type="button" class="ms-custom-btn" onclick="addCustomMS('rPetugas')">Tambah</button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="sec-title" style="margin-top:4px"><i class="fas fa-clipboard-check"></i> Kuesioner Monitoring <span class="rq">*</span><span id="rekamJenisTag" style="color:var(--text3);font-weight:700;text-transform:none;letter-spacing:0"></span></div>
@@ -1031,14 +1095,14 @@ const COMPLIANCE_KDMP=[
 const FORM_SPPG={key:'SPPG',title:'DAFTAR PERTANYAAN UNTUK SPPG',purpose:'Mengetahui Perkembangan Operasional dalam Pengelolaan SPPG',dur:'45 menit',sections:[
   {title:'Bagian 1. Identitas dan Lokasi Responden',fields:[
     {id:'sp101',label:'Nama SPPG',type:'t'},
-    {id:'sp102',label:'Provinsi',type:'t'},
-    {id:'sp103',label:'Kabupaten/Kota',type:'t'},
+    {id:'sp102',label:'Provinsi',type:'c',opts:['Jawa Tengah']},
+    {id:'sp103',label:'Kabupaten/Kota',type:'c',opts:['Kota Pekalongan','Kab. Pekalongan','Kab. Batang']},
     {id:'sp104',label:'Apakah masih beroperasi?',type:'yn'},
     {id:'sp105',label:'Jika tidak beroperasi, alasan utama',type:'s',opts:['Proses Pendaftaran','Persiapan Operasional','Kontrak berakhir / dihentikan pemerintah','Dana operasional tidak tersedia','Fasilitas dapur tidak layak pakai','Kendala distribusi logistik ke lokasi','Suspend BGN','Lainnya']},
     {id:'sp106',label:'Sejak kapan beroperasi',type:'d'},
     {id:'sp107',label:'Nama Responden',type:'t'},
     {id:'sp108',label:'Jabatan/Posisi Responden',type:'c',opts:['Kepala SPPG','Pengawas Gizi','Akuntan','Lainnya']},
-    {id:'sp109',label:'Petugas yang mewawancara',type:'t'},
+    {id:'sp109',label:'Petugas yang mewawancara',type:'petugas_ms'},
     {id:'sp110',label:'Tanggal wawancara',type:'d'}
   ]},
   {title:'Bagian 2. Operasional SPPG',fields:[
@@ -1080,6 +1144,10 @@ const FORM_SPPG={key:'SPPG',title:'DAFTAR PERTANYAAN UNTUK SPPG',purpose:'Menget
     {id:'sp412',label:'Harga bahan baku',type:'g',fields:[{id:'ini',label:'Bulan ini',unit:'Rp Ribu/kg'},{id:'lalu',label:'Bulan lalu',unit:'Rp Ribu/kg'}],rows:[{id:'beras',label:'Beras'},{id:'ayam',label:'Daging ayam'},{id:'telur',label:'Telur'},{id:'susu',label:'Susu'}]},
     {id:'sp413',label:'Pengeluaran biaya operasional minggu lalu',type:'g',unit:'Rp Juta',rows:[{id:'tk',label:'Tenaga kerja/Relawan'},{id:'bbm',label:'Bensin/Solar/BBM'},{id:'lpg',label:'LPG/BBG/Gas Kota'},{id:'util',label:'Utilitas: Listrik, Air Bersih'},{id:'sewa',label:'Sewa kendaraan'},{id:'lain',label:'Biaya operasional lainnya'}]},
     {id:'sp414',label:'Kendala terkait penyiapan dan distribusi MBG (boleh lebih dari satu)',type:'m',opts:['Ketersediaan bahan baku','Harga bahan baku meningkat','Pembayaran ke supplier terhambat','Petty cash tidak mencukupi','Keterlambatan pencairan anggaran dari BGN','Lainnya']}
+  ]},
+  {title:'Bagian 5. Dokumentasi Kegiatan & Lampiran',fields:[
+    {id:'sp_link_lampiran',label:'1. Link / Tautan Lampiran Berkas (Google Drive, Dokumen, Laporan, dsb.)',type:'url'},
+    {id:'sp_foto_kegiatan',label:'2. Dokumentasi Foto Kegiatan / Distribusi MBG (lewat HP / Kamera)',type:'photo'}
   ]}
 ]};
 /* ---- Naker: Form Tenaga Kerja (sheet "Naker" - 3 bagian, 10 butir) ---- */
@@ -1127,6 +1195,64 @@ function hidePreview(){document.getElementById('hasilPreviewWrap').style.display
 
 function formFieldHtml(f,data){
   const v=data?data[f.id]:undefined;
+  if(f.type==='petugas_ms'){
+    const val=v||'';
+    const id='ff_'+f.id;
+    return `<div class="ms-wrap" id="wrap_${id}">
+      <div class="ms-trigger fc" onclick="toggleMS('${id}', event)">
+        <div class="ms-labels" id="lbl_${id}"><span class="ms-placeholder">Pilih petugas / input baru...</span></div>
+        <i class="fas fa-chevron-down ms-arrow"></i>
+      </div>
+      <input type="hidden" id="${id}" value="${esc(val)}" />
+      <div class="ms-dropdown" id="drop_${id}" onclick="event.stopPropagation()">
+        <div class="ms-head">
+          <div class="ms-search-wrap">
+            <i class="fas fa-search"></i>
+            <input type="text" class="ms-search" placeholder="Cari nama..." oninput="filterMS('${id}', this.value)"/>
+          </div>
+          <div class="ms-actions">
+            <button type="button" class="ms-btn-act" onclick="selectAllMS('${id}', true)">✓ Semua</button>
+            <button type="button" class="ms-btn-act" onclick="selectAllMS('${id}', false)">✕ Reset</button>
+          </div>
+        </div>
+        <div class="ms-list" id="list_${id}"></div>
+        <div class="ms-foot">
+          <div class="ms-custom-wrap">
+            <input type="text" id="cust_${id}" placeholder="+ Input nama langsung..." class="ms-custom-inp" onkeydown="if(event.key==='Enter'){addCustomMS('${id}');event.preventDefault();}"/>
+            <button type="button" class="ms-custom-btn" onclick="addCustomMS('${id}')">Tambah</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+  if(f.type==='url'||f.type==='link'){
+    const val=v||'';
+    const id='ff_'+f.id;
+    return `<div class="link-wrap" style="position:relative">
+      <i class="fas fa-link" style="position:absolute;left:11px;top:12px;color:var(--text3);font-size:11px"></i>
+      <input type="url" id="${id}" class="fc" value="${esc(val)}" placeholder="Contoh: https://drive.google.com/file/d/..." style="padding-left:30px" oninput="onFormInput()"/>
+      ${val ? `<div style="margin-top:5px;font-size:10.5px"><a href="${esc(val)}" target="_blank" rel="noopener noreferrer" style="color:var(--brand);font-weight:700"><i class="fas fa-external-link-alt"></i> Buka Link Lampiran</a></div>` : ''}
+    </div>`;
+  }
+  if(f.type==='photo'){
+    const val=v||'';
+    const id='ff_'+f.id;
+    return `<div class="photo-wrap" id="pwrap_${id}">
+      <input type="hidden" id="${id}" value="${esc(val)}" />
+      <div class="photo-controls" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <label class="btn bp bsm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+          <i class="fas fa-camera"></i> Ambil Foto / Upload lewat HP
+          <input type="file" accept="image/*" capture="environment" style="display:none" onchange="capturePhotoMS('${id}', event)" />
+        </label>
+        <button type="button" class="btn bx bsm" id="pdel_${id}" onclick="deletePhotoMS('${id}')" style="display:${val?'inline-flex':'none'}">
+          <i class="fas fa-trash"></i> Hapus Foto
+        </button>
+      </div>
+      <div class="photo-preview" id="prev_${id}" style="margin-top:8px;display:${val?'block':'none'}">
+        ${val ? `<img src="${val}" style="max-height:160px;max-width:100%;border-radius:10px;border:2px solid var(--border);box-shadow:var(--sh)"/>` : ''}
+      </div>
+    </div>`;
+  }
   if(f.type==='g')return gridFieldHtml(f,data);
   if(f.type==='ta')return `<textarea id="ff_${f.id}" class="fc" placeholder="${esc(f.label)}" oninput="onFormInput()">${esc(v||'')}</textarea>`;
   if(f.type==='s')return `<select id="ff_${f.id}" class="fc" onchange="onFormInput()"><option value="">— Pilih —</option>${f.opts.map(o=>`<option ${String(o)===String(v)?'selected':''}>${esc(o)}</option>`).join('')}</select>`;
@@ -1258,6 +1384,22 @@ function renderRekamForm(jenis,rec){
   h+=renderGenericForm(formDef,data);
   h+=`<div class="qbagian">Penilaian Akhir Monitoring</div><div class="qfield"><div class="qfn"><span class="qn">★</span>Hasil / Status Monitoring <span class="rq">*</span></div><select id="rHasilManual" class="fc" onchange="previewHasilManual()"><option value="baik">🟢 Baik</option><option value="perbaikan">🟡 Perlu Perbaikan</option><option value="kritis">🔴 Kritis</option></select><div class="qunit-hint">Disarankan otomatis dari indikator — dapat disesuaikan petugas.</div></div>`;
   root.innerHTML='<div class="qkues">'+h+'</div>';
+  const u = unitById(getVal('rUnit'));
+  if (currentRekamForm === 'SPPG' && u) {
+    if (!rec || !f.fields || !f.fields.sp101) {
+      setVal('ff_sp101', u.nama + (u.ref ? ' (' + u.ref + ')' : ''));
+    }
+    if (!rec || !f.fields || !f.fields.sp102) {
+      setVal('ff_sp102', 'Jawa Tengah');
+    }
+    if (!rec || !f.fields || !f.fields.sp103) {
+      setVal('ff_sp103', u.kab || 'Kota Pekalongan');
+    }
+    if (!rec || !f.fields || !f.fields.sp109) {
+      if (CU) setMSVal('ff_sp109', CU.nama);
+    }
+  }
+  ['ff_sp109'].forEach(id => { if (document.getElementById('list_' + id)) renderMSList(id); });
   setVal('rHasilManual',(rec&&rec.formType===currentRekamForm&&rec.hasil)?rec.hasil:hasilSaran());
   previewHasilManual();
 }
@@ -2090,11 +2232,21 @@ function openDetail(id){
   const monHtml=ms.length?ms.slice(0,5).map(m=>{
     const asp=monDetailAspects(m);
     const scoreTag=(m.form&&m.jenis==='KDMP'&&m.form.avg!=null)?`<span class="kchip" style="background:#1E3A8A;color:#fff">⭐ ${m.form.avg} · ${esc(m.form.kategori||'')}</span>`:'';
+    const linkVal = (m.form && m.form.fields && m.form.fields.sp_link_lampiran);
+    const linkHtml = linkVal
+      ? `<div style="margin-top:6px;font-size:11px"><a href="${esc(linkVal)}" target="_blank" rel="noopener noreferrer" style="color:var(--brand);font-weight:700;display:inline-flex;align-items:center;gap:5px"><i class="fas fa-external-link-alt"></i> <b>Link Lampiran Berkas</b></a></div>`
+      : '';
+    const fotoVal = (m.form && m.form.fields && (m.form.fields.sp_foto_kegiatan || m.form.fields.sp205_foto));
+    const fotoHtml = fotoVal
+      ? `<div style="margin-top:8px"><img src="${fotoVal}" style="max-height:160px;max-width:100%;border-radius:8px;border:1px solid var(--border)"/></div>`
+      : '';
     return `<div class="mon-item">
-      <div class="mon-top"><span class="mon-date">📅 ${fmtD(m.tgl)} · ${esc(m.petugas)}</span>${scoreTag}<span class="kchip ${m.hasil}">${HASIL_META[m.hasil].label}</span></div>
+      <div class="mon-top"><span class="mon-date">📅 ${fmtD(m.tgl)} · Tim: ${esc(m.petugas)}</span>${scoreTag}<span class="kchip ${m.hasil}">${HASIL_META[m.hasil].label}</span></div>
       <div style="display:flex;gap:4px;flex-wrap:wrap">${asp}</div>
       <div class="mon-t"><b>Temuan:</b> ${esc(m.temuan||'-')}</div>
       <div class="mon-t"><b>Rekomendasi:</b> ${esc(m.rekom||'-')}</div>
+      ${linkHtml}
+      ${fotoHtml}
       <div class="hc-actions" style="margin-top:7px">
         <button class="btn bd bsm" onclick="cetakMon('${m.id}')"><i class="fas fa-file-pdf"></i> PDF</button>
         <button class="btn bs bsm" onclick="cetakMonDocx('${m.id}')"><i class="fas fa-file-word"></i> DOCX</button>
@@ -2121,11 +2273,250 @@ function openDetail(id){
 }
 
 /* ============================================================
+   MULTI-SELECT PETUGAS, WAWANCARA & FOTO HP
+============================================================ */
+const DEFAULT_OFFICERS = [
+  "Darmawan",
+  "Muh. Soleh",
+  "Indrastutik",
+  "Moh. Imron",
+  "Srudono",
+  "M. Reza Pratama",
+  "I Wayan Deka",
+  "Ihda Hidayah",
+  "Hepi Sekar",
+  "M. Hafidz",
+  "Ida Nurkayadi",
+  "Amin Hidayatullah",
+  "Titut Triani",
+  "Yuni Kusmiyati",
+  "Ruli Indra Kusuma",
+  "Martono",
+  "Arif Sunoto",
+  "Nursigit Santoso",
+  "Hendranto P"
+];
+let OFFICER_LIST = [...DEFAULT_OFFICERS];
+
+function initMS() {
+  try {
+    const saved = localStorage.getItem('darma_officers_names');
+    if (saved) {
+      const arr = JSON.parse(saved);
+      if (Array.isArray(arr) && arr.length) OFFICER_LIST = arr;
+    }
+  } catch (e) {}
+  renderAllMS();
+  document.addEventListener('click', function() { closeAllMS(); });
+}
+
+function renderAllMS() {
+  ['rPetugas', 'ff_sp109'].forEach(id => renderMSList(id));
+}
+
+function renderMSList(id) {
+  const cont = document.getElementById('list_' + id);
+  if (!cont) return;
+  const currentVals = getMSVals(id);
+  cont.innerHTML = OFFICER_LIST.map(nm => {
+    const checked = currentVals.includes(nm.toLowerCase()) ? 'checked' : '';
+    return `<label class="ms-item" data-name="${esc(nm).toLowerCase()}">
+      <input type="checkbox" value="${esc(nm)}" ${checked} onchange="onMSChange('${id}')">
+      <span class="ms-name">${esc(nm)}</span>
+    </label>`;
+  }).join('');
+  renderMSSelection(id);
+}
+
+function toggleMS(id, e) {
+  if (e) e.stopPropagation();
+  const wrap = document.getElementById('wrap_' + id);
+  if (!wrap) return;
+  const wasOpen = wrap.classList.contains('open');
+  closeAllMS();
+  if (!wasOpen) wrap.classList.add('open');
+}
+
+function closeAllMS() {
+  document.querySelectorAll('.ms-wrap.open').forEach(w => w.classList.remove('open'));
+}
+
+function getMSVals(id) {
+  const valStr = (document.getElementById(id) && document.getElementById(id).value || '').trim();
+  return valStr ? valStr.split(',').map(x => x.trim().toLowerCase()).filter(Boolean) : [];
+}
+
+function onMSChange(id) {
+  const cont = document.getElementById('list_' + id);
+  if (!cont) return;
+  const chks = cont.querySelectorAll('input[type="checkbox"]:checked');
+  const vals = Array.from(chks).map(c => c.value);
+  const inp = document.getElementById(id);
+  if (inp) inp.value = vals.join(', ');
+  renderMSSelection(id);
+}
+
+function renderMSSelection(id) {
+  const inp = document.getElementById(id);
+  const lbl = document.getElementById('lbl_' + id);
+  if (!inp || !lbl) return;
+  const valStr = (inp.value || '').trim();
+  if (!valStr) {
+    const ph = id === 'rPetugas' ? 'Pilih petugas / input baru...' : 'Pilih pewawancara / input baru...';
+    lbl.innerHTML = `<span class="ms-placeholder">${ph}</span>`;
+    return;
+  }
+  const vals = valStr.split(',').map(x => x.trim()).filter(Boolean);
+  lbl.innerHTML = vals.map(v => `<span class="ms-chip">${esc(v)} <b onclick="removeMSItem('${id}', '${esc(v)}', event)">×</b></span>`).join('');
+  const cont = document.getElementById('list_' + id);
+  if (cont) {
+    const lowVals = vals.map(v => v.toLowerCase());
+    cont.querySelectorAll('input[type="checkbox"]').forEach(c => {
+      c.checked = lowVals.includes(c.value.toLowerCase());
+    });
+  }
+}
+
+function removeMSItem(id, itemVal, e) {
+  if (e) { e.stopPropagation(); e.preventDefault(); }
+  const inp = document.getElementById(id);
+  if (!inp) return;
+  const valStr = (inp.value || '').trim();
+  const vals = valStr.split(',').map(x => x.trim()).filter(x => x && x.toLowerCase() !== itemVal.toLowerCase());
+  inp.value = vals.join(', ');
+  renderMSSelection(id);
+}
+
+function selectAllMS(id, checkAll) {
+  const cont = document.getElementById('list_' + id);
+  if (!cont) return;
+  const visibleChks = cont.querySelectorAll('.ms-item:not([style*="display: none"]) input[type="checkbox"]');
+  visibleChks.forEach(c => { c.checked = checkAll; });
+  onMSChange(id);
+}
+
+function filterMS(id, q) {
+  const cont = document.getElementById('list_' + id);
+  if (!cont) return;
+  const items = cont.querySelectorAll('.ms-item');
+  const term = (q || '').toLowerCase().trim();
+  items.forEach(it => {
+    const name = it.getAttribute('data-name') || '';
+    it.style.display = (!term || name.includes(term)) ? 'flex' : 'none';
+  });
+}
+
+function addCustomMS(id) {
+  const inp = document.getElementById('cust_' + id);
+  if (!inp) return;
+  const newName = (inp.value || '').trim();
+  if (!newName) return;
+  const cont = document.getElementById('list_' + id);
+  if (!OFFICER_LIST.some(nm => nm.toLowerCase() === newName.toLowerCase())) {
+    OFFICER_LIST.push(newName);
+    try { localStorage.setItem('darma_officers_names', JSON.stringify(OFFICER_LIST)); } catch (e) {}
+    renderAllMS();
+  }
+  const valStr = (document.getElementById(id) && document.getElementById(id).value || '').trim();
+  const vals = valStr ? valStr.split(',').map(x => x.trim()).filter(Boolean) : [];
+  if (!vals.some(v => v.toLowerCase() === newName.toLowerCase())) {
+    vals.push(newName);
+  }
+  const targetInp = document.getElementById(id);
+  if (targetInp) targetInp.value = vals.join(', ');
+  inp.value = '';
+  renderMSSelection(id);
+  toast('➕ Nama "' + newName + '" ditambahkan dan dipilih');
+}
+
+function setMSVal(id, valStr) {
+  setVal(id, valStr || '');
+  renderMSSelection(id);
+}
+
+async function syncPetugasFromSheet() {
+  toast('⏳ Mengambil data nama petugas dari Google Sheet...');
+  const url = 'https://docs.google.com/spreadsheets/d/1z-S7gWriLPNmq2BSUBqvd8fH7qDus1waeYQArlIClNE/export?format=csv';
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const lines = text.split(/\r?\n/).filter(x => x.trim());
+    const list = [];
+    for (let i = 1; i < lines.length; i++) {
+      const parts = lines[i].split(',');
+      if (parts[0] && parts[0].trim()) {
+        const nm = parts[0].trim();
+        if (!list.includes(nm)) list.push(nm);
+      }
+    }
+    if (list.length > 0) {
+      OFFICER_LIST = list;
+      try { localStorage.setItem('darma_officers_names', JSON.stringify(list)); } catch (e) {}
+      renderAllMS();
+      toast('✅ ' + list.length + ' nama petugas diperbarui dari Google Sheet!');
+      return;
+    }
+  } catch (err) {
+    console.warn('Sync sheet fallback default', err);
+  }
+  OFFICER_LIST = [...DEFAULT_OFFICERS];
+  renderAllMS();
+  toast('✅ Data nama petugas dimuat (' + OFFICER_LIST.length + ' terdaftar)');
+}
+
+function capturePhotoMS(id, e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const maxDim = 800;
+      let w = img.width, h = img.height;
+      if (w > maxDim || h > maxDim) {
+        if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+        else { w = Math.round((w * maxDim) / h); h = maxDim; }
+      }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      const inp = document.getElementById(id);
+      if (inp) inp.value = dataUrl;
+      const prev = document.getElementById('prev_' + id);
+      if (prev) {
+        prev.innerHTML = `<img src="${dataUrl}" style="max-height:160px;max-width:100%;border-radius:10px;border:2px solid var(--border);box-shadow:var(--sh)"/>`;
+        prev.style.display = 'block';
+      }
+      const del = document.getElementById('pdel_' + id);
+      if (del) del.style.display = 'inline-flex';
+      toast('📸 Foto berhasil diambil dan disimpan');
+    };
+    img.src = evt.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function deletePhotoMS(id) {
+  const inp = document.getElementById(id);
+  if (inp) inp.value = '';
+  const prev = document.getElementById('prev_' + id);
+  if (prev) { prev.innerHTML = ''; prev.style.display = 'none'; }
+  const del = document.getElementById('pdel_' + id);
+  if (del) del.style.display = 'none';
+  toast('🗑️ Foto dihapus');
+}
+
+/* ============================================================
    MONITORING (REKAM)
 ============================================================ */
 function initRekamForm(){
   const today=new Date().toISOString().slice(0,10);
   document.getElementById('rTgl').value=today;
+  initMS();
   renderRekamForm(null);
 }
 function refreshUnitSelect(){
@@ -2171,7 +2562,8 @@ function saveMonitoring(){
   if(!unitId){toast('Pilih unit yang dimonitor','e');return;}
   if(!tgl){toast('Isi tanggal kunjungan','e');return;}
   const u=unitById(unitId);if(!u)return;
-  const petugas=getVal('rPetugas')||CU.nama;
+  const petugas=getVal('rPetugas')||(CU?CU.nama:'');
+  const driver='';
   const temuan=getVal('rTemuan'),rekom=getVal('rRekom');
   let form,hasil;
   if(u.jenis==='KDMP'){
@@ -2182,7 +2574,7 @@ function saveMonitoring(){
     form=collectGeneric(FORMS[currentRekamForm]||FORM_SPPG);
     hasil=getVal('rHasilManual')||'baik';
   }
-  const base={unitId,tgl,petugas,jenis:u.jenis,formType:(u.jenis==='KDMP'?'KDMP':(currentRekamForm||'SPPG')),form,hasil,temuan,rekom};
+  const base={unitId,tgl,petugas,driver,jenis:u.jenis,formType:(u.jenis==='KDMP'?'KDMP':(currentRekamForm||'SPPG')),form,hasil,temuan,rekom};
   if(editMonId){
     const m=DB.monitoring.find(x=>x.id===editMonId);
     if(m){Object.assign(m,base);persist('monitoring',m);toast('✅ Monitoring diperbarui');}
@@ -2199,7 +2591,9 @@ function saveMonitoring(){
 function resetRekamForm(){
   document.getElementById('rUnit').value='';
   document.getElementById('rTgl').value=new Date().toISOString().slice(0,10);
-  setVal('rPetugas',CU?CU.nama:'');setVal('rTemuan','');setVal('rRekom','');
+  setMSVal('rPetugas', CU?CU.nama:'');
+  setVal('rTemuan','');
+  setVal('rRekom','');
   document.getElementById('unitInfo').innerHTML='Pilih unit SPPG atau KDMP yang dikunjungi.';
   renderRekamForm(null);
 }
@@ -2207,7 +2601,7 @@ function addMonitorFor(id){
   goTab('rekam');refreshUnitSelect();
   editMonId=null;
   document.getElementById('rUnit').value=id;onUnitPick();
-  if(CU)setVal('rPetugas',CU.nama);
+  if(CU)setMSVal('rPetugas',CU.nama);
   toast('📋 Kuesioner siap — selesaikan isian sesuai jenis unit!');
 }
 
@@ -2251,7 +2645,8 @@ function openEditMon(id){
   editMonId=id;
   currentRekamForm=(m.formType==='NAKER')?'NAKER':'SPPG';
   document.getElementById('rUnit').value=m.unitId;
-  setVal('rTgl',m.tgl);setVal('rPetugas',m.petugas||'');
+  setVal('rTgl',m.tgl);
+  setMSVal('rPetugas',m.petugas||'');
   setVal('rTemuan',m.temuan||'');setVal('rRekom',m.rekom||'');
   document.getElementById('unitInfo').innerHTML=`📍 ${esc(u.alamat)}, ${esc(u.kec)}, ${esc(u.kab)} · <b style="color:var(--brand)">EDIT MONITORING</b>`;
   renderRekamForm(u.jenis,m);
@@ -2347,7 +2742,8 @@ function exportPdfMonitoring(){
     startY:y,
     head:[['No','Tanggal','Nama Unit','Jenis','Kecamatan','Kabupaten/Kota','Petugas','Kebersihan','Menu & Gizi','Distribusi','Dokumentasi','HASIL','Temuan Lapangan','Rekomendasi']],
     body:list.map((m,i)=>{const u=unitById(m.unitId)||{};
-      return [i+1,fmtD(m.tgl),stripEmoji(u.nama),u.jenis||'',u.kec||'',u.kab||'',stripEmoji(m.petugas),ASPEK_PLAIN[m.kebersihan]||'',ASPEK_PLAIN[m.gizi]||'',ASPEK_PLAIN[m.distribusi]||'',ASPEK_PLAIN[m.dok]||'',HASIL_PLAIN[m.hasil]||m.hasil,stripEmoji(m.temuan||'-'),stripEmoji(m.rekom||'-')];}),
+      const pTxt = [m.petugas, (m.form&&m.form.fields&&m.form.fields.sp109) ? 'Wawancara: '+m.form.fields.sp109 : ''].filter(Boolean).join('\n');
+      return [i+1,fmtD(m.tgl),stripEmoji(u.nama),u.jenis||'',u.kec||'',u.kab||'',pTxt,ASPEK_PLAIN[m.kebersihan]||'',ASPEK_PLAIN[m.gizi]||'',ASPEK_PLAIN[m.distribusi]||'',ASPEK_PLAIN[m.dok]||'',HASIL_PLAIN[m.hasil]||m.hasil,stripEmoji(m.temuan||'-'),stripEmoji(m.rekom||'-')];}),
     styles:TBL_STYLE,headStyles:TBL_HEAD,...TBL_ALT,
     columnStyles:{0:{cellWidth:7},1:{cellWidth:17},2:{cellWidth:34},3:{cellWidth:13},4:{cellWidth:19},5:{cellWidth:22},6:{cellWidth:19},7:{cellWidth:14},8:{cellWidth:14},9:{cellWidth:14},10:{cellWidth:16},11:{cellWidth:22},12:{cellWidth:37},13:{cellWidth:31}},
     didParseCell:d=>{if(d.section==='head')return;
@@ -2419,7 +2815,7 @@ function exportPdfUnitDetail(id){
     doc.autoTable({
       startY:y,
       head:[['Tanggal','Petugas','Kebersihan','Menu & Gizi','Distribusi','Dokumen','HASIL','Temuan Lapangan','Rekomendasi']],
-      body:ms.map(m=>[fmtD(m.tgl),stripEmoji(m.petugas),ASPEK_PLAIN[m.kebersihan],ASPEK_PLAIN[m.gizi],ASPEK_PLAIN[m.distribusi],ASPEK_PLAIN[m.dok],HASIL_PLAIN[m.hasil],stripEmoji(m.temuan||'-'),stripEmoji(m.rekom||'-')]),
+      body:ms.map(m=>[fmtD(m.tgl),[m.petugas, (m.form&&m.form.fields&&m.form.fields.sp109) ? 'Wawancara: '+m.form.fields.sp109 : ''].filter(Boolean).join('\n'),ASPEK_PLAIN[m.kebersihan],ASPEK_PLAIN[m.gizi],ASPEK_PLAIN[m.distribusi],ASPEK_PLAIN[m.dok],HASIL_PLAIN[m.hasil],stripEmoji(m.temuan||'-'),stripEmoji(m.rekom||'-')]),
       styles:{fontSize:6.8,cellPadding:1.5,overflow:'linebreak'},headStyles:TBL_HEAD,...TBL_ALT,
       columnStyles:{0:{cellWidth:16},1:{cellWidth:19},2:{cellWidth:14},3:{cellWidth:14},4:{cellWidth:14},5:{cellWidth:14},6:{cellWidth:21},7:{cellWidth:38},8:{cellWidth:33}},
       didParseCell:d=>{if(d.column.index===6&&d.section==='body'){const v=d.cell.raw;const c=v==='BAIK'?[22,163,74]:v==='PERLU PERBAIKAN'?[180,83,9]:[185,28,28];d.cell.styles.textColor=c;d.cell.styles.fontStyle='bold';}}
@@ -2472,7 +2868,7 @@ function exportXlsxUnit(id){
   info.push(['Catatan',u.note||'']);
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(info),'Profil Unit');
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(ms.map(m=>({'Tanggal':m.tgl,'Petugas':m.petugas,'Kebersihan':ASPEK_META[m.kebersihan],'Menu & Gizi':ASPEK_META[m.gizi],'Distribusi':ASPEK_META[m.distribusi],'Dokumentasi':ASPEK_META[m.dok],'Hasil':HASIL_META[m.hasil].label,'Temuan':m.temuan||'','Rekomendasi':m.rekom||''}))),'Riwayat Monitoring');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(ms.map(m=>({'Tanggal':m.tgl,'Petugas Tim':m.petugas,'Pewawancara (SPPG)':(m.form&&m.form.fields&&m.form.fields.sp109)||'','Link Lampiran Berkas':(m.form&&m.form.fields&&m.form.fields.sp_link_lampiran)||'','Kebersihan':ASPEK_META[m.kebersihan],'Menu & Gizi':ASPEK_META[m.gizi],'Distribusi':ASPEK_META[m.distribusi],'Dokumentasi':ASPEK_META[m.dok],'Hasil':HASIL_META[m.hasil].label,'Temuan':m.temuan||'','Rekomendasi':m.rekom||''}))),'Riwayat Monitoring');
   XLSX.writeFile(wb,'DARMA_'+u.nama.replace(/[^\w\s]/g,'').replace(/\s+/g,'_').slice(0,30)+'.xlsx');
   toast('📥 Excel unit terunduh');
 }
@@ -2498,7 +2894,7 @@ function exportXlsx(mode,useFilters){
     let survey='';
     if(isSppg){survey=Object.entries(m.form.fields||{}).filter(([,v])=>v&&v!=='').map(([k,v])=>(SPPG_FIELD_LABEL[k]||k)+': '+v).join('  |  ');}
     const comp=m.form&&m.form.compliance?m.form.compliance:[];
-    return {'Tanggal':m.tgl,'Jenis':u.jenis||'','Nama Unit':u.nama||'','Kecamatan':u.kec||'','Kabupaten/Kota':u.kab||'','Petugas':m.petugas,
+    return {'Tanggal':m.tgl,'Jenis':u.jenis||'','Nama Unit':u.nama||'','Kecamatan':u.kec||'','Kabupaten/Kota':u.kab||'','Petugas Tim':m.petugas,'Pewawancara':(m.form&&m.form.fields&&m.form.fields.sp109)||'','Link Lampiran':(m.form&&m.form.fields&&m.form.fields.sp_link_lampiran)||'',
       'Kebersihan & Sanitasi':ASPEK_META[m.kebersihan]||m.kebersihan||'','Kualitas Menu & Gizi':ASPEK_META[m.gizi]||m.gizi||'','Distribusi':ASPEK_META[m.distribusi]||m.distribusi||'','Dokumentasi':ASPEK_META[m.dok]||m.dok||'',
       'Skor Rata-rata (KDMP)':isKdmp?(m.form.avg!=null?m.form.avg:''):'',
       'Kategori (KDMP)':isKdmp?(m.form.kategori||''):'',
@@ -2551,14 +2947,15 @@ function buildKdmpPrintHtml(m,blank){
   const f=(m&&m.form)||{}, secs=f.sections||[], comp=f.compliance||[];
   const u=(m&&m.unitId)?unitById(m.unitId):null;
   const tgl=(m&&m.tgl)||'', petugas=(m&&m.petugas)||'';
+  const pAll = [petugas, (m&&m.form&&m.form.fields&&m.form.fields.sp109)?'Wawancara: '+m.form.fields.sp109:''].filter(Boolean).join(' | ');
   const hl=(f.hasil&&HASIL_META[f.hasil])?HASIL_META[f.hasil].label:'';
   let h='<h1>Kuesioner Survei KPPN</h1>';
   h+='<h2>Monitoring dan Evaluasi Koperasi Desa/Kelurahan Merah Putih (KDMP/KKMP)</h2>';
   h+='<div class="sub">MONEV KDMP/KKMP &mdash; &ldquo;BANGUNAN PERMANEN&rdquo;</div>';
-  h+=printHeader(tgl,petugas,u,[
+  h+=printHeader(tgl,pAll,u,[
     ['Nama KDMP/KKMP',u?u.nama:'........................','Tanggal Survei',tgl?fmtD(tgl):'........................'],
     ['Kabupaten/Kota',u?u.kab:'........................','Kecamatan',u?u.kec:'........................'],
-    ['Desa/Kelurahan',u?u.desa:'........................','Petugas Survei',petugas||'........................'],
+    ['Desa/Kelurahan',u?u.desa:'........................','Petugas Survei',pAll||'........................'],
     ['Alamat',u?u.alamat:'........................................................................................................................','','']
   ]);
   h+='<table><thead><tr><th class="kol-skor">Skor</th><th style="text-align:left">Kriteria Penilaian</th></tr></thead><tbody>'+
@@ -2601,12 +2998,13 @@ function buildSppgPrintHtml(m,blank){
   const f=(m&&m.form)||{}, fields=f.fields||{};
   const u=(m&&m.unitId)?unitById(m.unitId):null;
   const tgl=(m&&m.tgl)||'', petugas=(m&&m.petugas)||'';
+  const pAll = [petugas, (m&&m.form&&m.form.fields&&m.form.fields.sp109)?'Wawancara: '+m.form.fields.sp109:''].filter(Boolean).join(' | ');
   const hl=(m&&m.hasil&&HASIL_META[m.hasil])?HASIL_META[m.hasil].label:'';
   let h='<h1>Daftar Pertanyaan Survey Penyaluran MBG</h1>';
   h+='<div class="sub">Survey Pemantauan Pelaksanaan Makan Bergizi Gratis &mdash; SPPG (estimasi &plusmn;45 menit)</div>';
-  h+=printHeader(tgl,petugas,u,[
+  h+=printHeader(tgl,pAll,u,[
     ['Nama SPPG',u?u.nama:'........................','Tanggal Survei',tgl?fmtD(tgl):'........................'],
-    ['Kabupaten/Kota',u?u.kab:'........................','Petugas Survei',petugas||'........................'],
+    ['Kabupaten/Kota',u?u.kab:'........................','Petugas Survei',pAll||'........................'],
     ['Responden (Nama)',fields.resp||'........................','Jabatan',fields.jab||'........................'],
     ['Alamat SPPG',u?u.alamat:'........................................................................................................................','','']
   ]);
@@ -2659,6 +3057,7 @@ function generateFormPdf(jenis,filled,rec){
   const PH=doc.internal.pageSize.getHeight();
   const u=(rec&&rec.unitId)?unitById(rec.unitId):null;
   const tgl=(rec&&rec.tgl)||'',petugas=(rec&&rec.petugas)||'',f=(rec&&rec.form)||{};
+  const pAll = [petugas, (rec&&rec.form&&rec.form.fields&&rec.form.fields.sp109)?'Wawancara: '+rec.form.fields.sp109:''].filter(Boolean).join(' | ');
   let y=pdfHead(doc,isK?'KUESIONER MONEV KDMP/KKMP':(formType==='NAKER'?'DAFTAR PERTANYAAN UNTUK TENAGA KERJA':'DAFTAR PERTANYAAN UNTUK SPPG'),
     isK?'Monev Koperasi Desa/Kelurahan Merah Putih (KDMP/KKMP) - Bangunan Permanen':((FORMS[formType]||{}).purpose||'')+(filled?'':' (FORM KOSONG)'));
   const idRows=isK
@@ -2671,7 +3070,7 @@ function generateFormPdf(jenis,filled,rec){
         ['Nama Responden',f.resp_nama||'','No. HP Responden',f.resp_hp||''],
         ['Jenis Responden',f.resp_jenis||'','','']
       ]
-    : [['Nama SPPG',u?u.nama:'','Tanggal Survei',tgl?fmtD(tgl):''],['Kabupaten/Kota',u?u.kab:'','Petugas Survei',petugas],['Nama Responden',(f.fields&&(f.fields.sp107||f.fields.nk101))||'','Jabatan/Posisi',(f.fields&&(f.fields.sp108||f.fields.nk102))||'']];
+    : [['Nama SPPG',u?u.nama:'','Tanggal Survei',tgl?fmtD(tgl):''],['Kabupaten/Kota',u?u.kab:'','Petugas Survei',pAll],['Nama Responden',(f.fields&&(f.fields.sp107||f.fields.nk101))||'','Jabatan/Posisi',(f.fields&&(f.fields.sp108||f.fields.nk102))||'']];
   doc.autoTable({startY:y,
     body:idRows.map(r=>[{content:pdfSafe(r[0]),styles:{fontStyle:'bold',fillColor:[244,244,244]}},{content:pdfSafe(r[1])},{content:pdfSafe(r[2]),styles:{fontStyle:'bold',fillColor:[244,244,244]}},{content:pdfSafe(r[3])}]).concat([[{content:'Alamat',styles:{fontStyle:'bold',fillColor:[244,244,244]}},{content:pdfSafe(u?u.alamat:''),colSpan:3}]]),
     theme:'grid',styles:{fontSize:8.5,cellPadding:1.7,lineWidth:0.1,lineColor:[180,180,180]},columnStyles:{0:{cellWidth:38},2:{cellWidth:34}}});
@@ -2978,7 +3377,7 @@ async function generateFormDocx(jenis, filled, rec) {
           new TableCell({ children: [new Paragraph({ text: '', spacing: { before: 800 } })], border: { top: {style: BorderStyle.NONE}, bottom: {style: BorderStyle.NONE}, left: {style: BorderStyle.NONE}, right: {style: BorderStyle.NONE} } })
         ]}),
         new TableRow({ children: [
-          new TableCell({ children: [new Paragraph({ text: '( ' + (rec.petugas || '..........................') + ' )', alignment: AlignmentType.CENTER, bold: true })], border: { top: {style: BorderStyle.NONE}, bottom: {style: BorderStyle.NONE}, left: {style: BorderStyle.NONE}, right: {style: BorderStyle.NONE} } }),
+          new TableCell({ children: [new Paragraph({ text: '( ' + ([rec.petugas, (rec.form&&rec.form.fields&&rec.form.fields.sp109) ? 'Wawancara: '+rec.form.fields.sp109 : ''].filter(Boolean).join(' | ') || '..........................') + ' )', alignment: AlignmentType.CENTER, bold: true })], border: { top: {style: BorderStyle.NONE}, bottom: {style: BorderStyle.NONE}, left: {style: BorderStyle.NONE}, right: {style: BorderStyle.NONE} } }),
           new TableCell({ children: [new Paragraph({ text: '( ' + (f.resp_nama || '..........................') + ' )', alignment: AlignmentType.CENTER, bold: true })], border: { top: {style: BorderStyle.NONE}, bottom: {style: BorderStyle.NONE}, left: {style: BorderStyle.NONE}, right: {style: BorderStyle.NONE} } })
         ]})
       ]
@@ -3015,5 +3414,5 @@ function cetakMonDocx(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28d3ad33f44f8c4',t:'MTc4NjM0NjM0MA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
