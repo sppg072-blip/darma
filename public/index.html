@@ -166,21 +166,81 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidde
 .mk.kdmp::after{content:'';position:absolute;inset:2px;border-radius:50%;border:1.5px solid rgba(255,255,255,.5);pointer-events:none;}
 .mk.dimonitor{background:linear-gradient(135deg,#15803d,#22c55e);}
 .mk.dimonitor::before{border-top-color:#22c55e;}
-/* 0 - 5 cincin frekuensi kunjungan */
+/* ============ ANIMASI GELOMBANG CINCIN FREKUENSI (PULSING WAVES) ============ */
 .mk.ring-1 {
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4.5px #22c55e;
+  animation: waveRing1 2.4s infinite ease-out;
 }
 .mk.ring-2 {
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4.5px #22c55e, 0 0 0 6.5px #fff, 0 0 0 9px #16a34a;
+  animation: waveRing2 2.4s infinite ease-out;
 }
 .mk.ring-3 {
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4.5px #22c55e, 0 0 0 6.5px #fff, 0 0 0 9px #16a34a, 0 0 0 11px #fff, 0 0 0 13.5px #15803d;
+  animation: waveRing3 2.2s infinite ease-out;
 }
 .mk.ring-4 {
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4.5px #22c55e, 0 0 0 6.5px #fff, 0 0 0 9px #16a34a, 0 0 0 11px #fff, 0 0 0 13.5px #15803d, 0 0 0 15.5px #fff, 0 0 0 18px #14532d;
+  animation: waveRing4 2.0s infinite ease-out;
 }
 .mk.ring-5 {
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4.5px #22c55e, 0 0 0 6.5px #fff, 0 0 0 9px #16a34a, 0 0 0 11px #fff, 0 0 0 13.5px #15803d, 0 0 0 15.5px #fff, 0 0 0 18px #14532d, 0 0 0 20px #fff, 0 0 0 22.5px #052e16;
+  animation: waveRing5 1.8s infinite ease-out;
+}
+
+@keyframes waveRing1 {
+  0% {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(34, 197, 94, 0.9);
+  }
+  50% {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 7px rgba(34, 197, 94, 0.7);
+  }
+  100% {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 11px rgba(34, 197, 94, 0);
+  }
+}
+
+@keyframes waveRing2 {
+  0% {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(34, 197, 94, 0.9), 0 0 0 6px #fff, 0 0 0 8px rgba(22, 163, 74, 0.8);
+  }
+  50% {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 7px rgba(34, 197, 94, 0.7), 0 0 0 10px #fff, 0 0 0 13px rgba(22, 163, 74, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 10px rgba(34, 197, 94, 0), 0 0 0 13px #fff, 0 0 0 18px rgba(22, 163, 74, 0);
+  }
+}
+
+@keyframes waveRing3 {
+  0% {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(34, 197, 94, 0.95), 0 0 0 6px #fff, 0 0 0 8px rgba(22, 163, 74, 0.85), 0 0 0 10px #fff, 0 0 0 12px rgba(21, 128, 61, 0.75);
+  }
+  50% {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 7px rgba(34, 197, 94, 0.8), 0 0 0 10px #fff, 0 0 0 13px rgba(22, 163, 74, 0.6), 0 0 0 16px #fff, 0 0 0 19px rgba(21, 128, 61, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 10px rgba(34, 197, 94, 0), 0 0 0 13px #fff, 0 0 0 17px rgba(22, 163, 74, 0), 0 0 0 20px #fff, 0 0 0 24px rgba(21, 128, 61, 0);
+  }
+}
+
+@keyframes waveRing4 {
+  0% {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(34, 197, 94, 0.95), 0 0 0 6px #fff, 0 0 0 8px rgba(22, 163, 74, 0.85), 0 0 0 10px #fff, 0 0 0 12px rgba(21, 128, 61, 0.75), 0 0 0 14px #fff, 0 0 0 16px rgba(20, 83, 45, 0.65);
+  }
+  50% {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 7px rgba(34, 197, 94, 0.85), 0 0 0 10px #fff, 0 0 0 13px rgba(22, 163, 74, 0.7), 0 0 0 16px #fff, 0 0 0 19px rgba(21, 128, 61, 0.55), 0 0 0 22px #fff, 0 0 0 25px rgba(20, 83, 45, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 10px rgba(34, 197, 94, 0), 0 0 0 13px #fff, 0 0 0 17px rgba(22, 163, 74, 0), 0 0 0 20px #fff, 0 0 0 24px rgba(21, 128, 61, 0), 0 0 0 27px #fff, 0 0 0 31px rgba(20, 83, 45, 0);
+  }
+}
+
+@keyframes waveRing5 {
+  0% {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(34, 197, 94, 1), 0 0 0 6px #fff, 0 0 0 8px rgba(22, 163, 74, 0.9), 0 0 0 10px #fff, 0 0 0 12px rgba(21, 128, 61, 0.8), 0 0 0 14px #fff, 0 0 0 16px rgba(20, 83, 45, 0.7), 0 0 0 18px #fff, 0 0 0 20px rgba(5, 46, 22, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 7px rgba(34, 197, 94, 0.9), 0 0 0 10px #fff, 0 0 0 13px rgba(22, 163, 74, 0.75), 0 0 0 16px #fff, 0 0 0 19px rgba(21, 128, 61, 0.6), 0 0 0 22px #fff, 0 0 0 25px rgba(20, 83, 45, 0.45), 0 0 0 28px #fff, 0 0 0 31px rgba(5, 46, 22, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 10px rgba(34, 197, 94, 0), 0 0 0 13px #fff, 0 0 0 17px rgba(22, 163, 74, 0), 0 0 0 20px #fff, 0 0 0 24px rgba(21, 128, 61, 0), 0 0 0 27px #fff, 0 0 0 31px rgba(20, 83, 45, 0), 0 0 0 35px #fff, 0 0 0 39px rgba(5, 46, 22, 0);
+  }
 }
 
 /* Gelombang berdasarkan status */
@@ -3645,5 +3705,5 @@ function cetakMonDocx(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28dda508cc623a5',t:'MTc4NjM1Mjg3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28de3425a2225fd',t:'MTc4NjM1MzIzOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
