@@ -110,14 +110,14 @@ function monRow(r) { let form = null; try { form = r.form_json ? JSON.parse(r.fo
 async function allMonitoring(env) { const { results } = await env.DB.prepare('SELECT * FROM monitoring ORDER BY tgl DESC').all(); return results.map(monRow); }
 
 const U_COLS = 'id,jenis,nama,ref,status,kab,kec,desa,alamat,lat,lng,pic,telp,note,yayasan,kapasitas,sekolah,slhs,mulai,anggota,peran,usaha,updated_at';
-const U_Q = 'INSERT OR REPLACE INTO units(' + 'id,jenis,nama,ref,status,kab,kec,desa,alamat,lat,lng,pic,telp,note,yayasan,kapasitas,sekolah,slhs,mulai,anggota,peran,usaha,updated_at'.split(',').join(',') + ') VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
+const U_Q = 'INSERT OR REPLACE INTO units(id,jenis,nama,ref,status,kab,kec,desa,alamat,lat,lng,pic,telp,note,yayasan,kapasitas,sekolah,slhs,mulai,anggota,peran,usaha,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
 const M_COLS = 'id,unit_id,tgl,petugas,jenis,form_type,hasil,form_json,kebersihan,gizi,distribusi,dok,temuan,rekom,updated_at';
 const M_Q = 'INSERT OR REPLACE INTO monitoring(id,unit_id,tgl,petugas,jenis,form_type,hasil,form_json,kebersihan,gizi,distribusi,dok,temuan,rekom,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
 function bindUnit(u) {
-  return [u.id, u.jenis, u.nama, u.ref, u.status, u.kab, u.kec, u.desa, u.alamat, u.lat, u.lng, u.pic, u.telp, u.note, u.yayasan, u.kapasitas || 0, u.sekolah || 0, u.slhs, u.mulai, u.anggota || 0, u.peran, u.usaha, Date.now()];
+  return [u.id||'', u.jenis||'', u.nama||'', u.ref||'', u.status||'aktif', u.kab||'', u.kec||'', u.desa||'', u.alamat||'', u.lat!=null?Number(u.lat):0, u.lng!=null?Number(u.lng):0, u.pic||'', u.telp||'', u.note||'', u.yayasan||'', u.kapasitas!=null?Number(u.kapasitas):0, u.sekolah!=null?Number(u.sekolah):0, u.slhs||'', u.mulai||'', u.anggota!=null?Number(u.anggota):0, u.peran||'', u.usaha||'', Date.now()];
 }
 function bindMon(m) {
-  return [m.id, m.unitId, m.tgl, m.petugas, m.jenis, m.formType, m.hasil, JSON.stringify(m.form || null), m.kebersihan || null, m.gizi || null, m.distribusi || null, m.dok || null, m.temuan, m.rekom, Date.now()];
+  return [m.id||'', m.unitId||'', m.tgl||'', m.petugas||'', m.jenis||'', m.formType||'', m.hasil||'', JSON.stringify(m.form||null), m.kebersihan||'', m.gizi||'', m.distribusi||'', m.dok||'', m.temuan||'', m.rekom||'', Date.now()];
 }
 
 async function upsertUser(request, env, cors) {
