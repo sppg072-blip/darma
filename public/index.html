@@ -1422,8 +1422,8 @@ const FORM_NAKER={key:'NAKER',title:'DAFTAR PERTANYAAN UNTUK TENAGA KERJA',purpo
     {id:'nk103',label:'Pendidikan Terakhir Responden',type:'c',opts:['Tidak Tamat SD','SD/sederajat','SMP/sederajat','SMA/sederajat','Diploma/S-1','S2/S3']},
     {id:'nk104',label:'Bekerja di SPPG Sejak (bulan/tahun)',type:'t'},
     {id:'nk105',label:'Nama SPPG',type:'t'},
-    {id:'nk106',label:'Provinsi',type:'t'},
-    {id:'nk107',label:'Kabupaten/Kota',type:'t'}
+    {id:'nk106',label:'Provinsi',type:'c',opts:['Jawa Tengah']},
+    {id:'nk107',label:'Kabupaten/Kota',type:'c',opts:['Kota Pekalongan','Kab. Pekalongan','Kab. Batang']}
   ]},
   {title:'Bagian 2. Pertanyaan terkait Pekerjaan',fields:[
     {id:'nk201',label:'Apakah Anda telah bekerja sebelumnya?',type:'c',opts:['Ya','Tidak']},
@@ -1663,7 +1663,18 @@ function renderRekamForm(jenis,rec){
       if (CU) setMSVal('ff_sp109', CU.nama);
     }
   }
-  ['ff_sp109'].forEach(id => { if (document.getElementById('list_' + id)) renderMSList(id); });
+  if (currentRekamForm === 'NAKER' && u) {
+    if (!rec || !f.fields || !f.fields.nk105) {
+      setVal('ff_nk105', u.nama + (u.ref ? ' (' + u.ref + ')' : ''));
+    }
+    if (!rec || !f.fields || !f.fields.nk106) {
+      setVal('ff_nk106', 'Jawa Tengah');
+    }
+    if (!rec || !f.fields || !f.fields.nk107) {
+      setVal('ff_nk107', u.kab || 'Kota Pekalongan');
+    }
+  }
+  renderAllMS();
   setVal('rHasilManual',(rec&&rec.formType===currentRekamForm&&rec.hasil)?rec.hasil:hasilSaran());
   previewHasilManual();
 }
@@ -2641,7 +2652,10 @@ function initMS() {
 }
 
 function renderAllMS() {
-  ['rPetugas', 'ff_sp109'].forEach(id => renderMSList(id));
+  document.querySelectorAll('.ms-wrap').forEach(w => {
+    const id = w.id.replace('wrap_', '');
+    renderMSList(id);
+  });
 }
 
 function renderMSList(id) {
@@ -2664,7 +2678,10 @@ function toggleMS(id, e) {
   if (!wrap) return;
   const wasOpen = wrap.classList.contains('open');
   closeAllMS();
-  if (!wasOpen) wrap.classList.add('open');
+  if (!wasOpen) {
+    renderMSList(id);
+    wrap.classList.add('open');
+  }
 }
 
 function closeAllMS() {
@@ -3760,5 +3777,5 @@ function cetakMonDocx(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28e3180a9718de2',t:'MTc4NjM1NjQ0NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28f09d80bc6f93b',t:'MTc4NjM2NTMwNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
