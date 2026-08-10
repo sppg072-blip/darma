@@ -1007,36 +1007,12 @@ textarea.fc {
 
 <!-- ================= SIDEBAR ================= -->
 <div id="sidebar">
-  <!-- FILTER PANEL -->
-  <div class="fpanel">
-    <div class="fp-head">
-      <div class="fp-title"><i class="fas fa-filter"></i> Filter Tampilan</div>
-      <div style="display:flex;gap:6px;align-items:center">
-        <button class="fp-reset" onclick="clearFilters()" title="Reset Filter">✕ Reset</button>
-        <button class="fp-reset" onclick="toggleSB(false)" style="color:var(--bad);border-color:var(--border)" title="Tutup Panel">✕ Tutup</button>
-      </div>
-    </div>
-    <div class="fd-group">
-      <select class="fd-select" id="fdJenis" onchange="onFilterChange()">
-        <option value="">🏷️ Semua Jenis</option>
-        <option value="SPPG">🍳 SPPG (Dapur)</option>
-        <option value="KDMP">🏪 KDMP (Koperasi)</option>
-      </select>
-      <select class="fd-select" id="fdHasil" onchange="onFilterChange()">
-        <option value="">✅ Semua Status Hasil</option>
-        <option value="baik">🟢 Baik</option>
-        <option value="perbaikan">🟡 Perlu Perbaikan</option>
-        <option value="kritis">🔴 Kritis</option>
-        <option value="belum">⚪ Belum Dimonitor</option>
-      </select>
-    </div>
-    <div class="fd-group" style="margin-top:6px">
-      <select class="fd-select" id="fdKab" onchange="onFilterChange(); renderBoundaries(this.value);">
-        <option value="">📍 Semua Kabupaten/Kota</option>
-      </select>
-    </div>
-    <div class="fsearch-wrap"><i class="fas fa-search"></i>
-      <input class="fd-search" id="fdSearch" placeholder="Cari nama unit / desa / kecamatan..." oninput="onFilterChange()"/>
+  <!-- HEADER BAR NAVIGASI -->
+  <div class="sidebar-top-bar" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg3);border-bottom:1px solid var(--border)">
+    <div style="font-size:11.5px;font-weight:800;color:var(--text2)"><i class="fas fa-layer-group" style="color:var(--brand)"></i> MENU NAVIGASI</div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button class="fp-reset" onclick="clearFilters()" title="Reset Semua Filter">✕ Reset Filter</button>
+      <button class="fp-reset" onclick="toggleSB(false)" style="color:var(--bad);border-color:var(--border)" title="Tutup Panel">✕ Tutup</button>
     </div>
   </div>
 
@@ -1079,7 +1055,7 @@ textarea.fc {
 
     <div class="dash-charts-grid">
       <div>
-        <div class="sec-title" style="margin-top:0"><i class="fas fa-signal"></i> Status Hasil Monitoring Terakhir</div>
+        <div class="sec-title" style="margin-top:0"><i class="fas fa-chart-bar"></i> Progres Cakupan Monitoring (Sudah vs Belum)</div>
         <div id="hasilBars"></div>
       </div>
       <div>
@@ -1088,7 +1064,7 @@ textarea.fc {
       </div>
     </div>
 
-    <div class="sec-title"><i class="fas fa-exclamation-circle"></i> Unit Perlu Perhatian</div>
+    <div class="sec-title"><i class="fas fa-bullseye"></i> Target Sasaran Unit Belum Dimonitor</div>
     <div id="attnList"></div>
 
     <div class="sec-title"><i class="fas fa-clock"></i> Monitoring Terbaru</div>
@@ -1170,33 +1146,50 @@ textarea.fc {
   <!-- TAB: MASTER UNIT -->
   <div class="tcont" id="tab-unit">
     <div style="display:flex;gap:6px;margin-bottom:9px;flex-wrap:wrap">
-      <button class="btn bp bsm" onclick="openUnitModal()"><i class="fas fa-plus"></i> Tambah Unit</button>
+      <button class="btn bp bsm" id="btnAddUnit" onclick="openUnitModal()"><i class="fas fa-plus"></i> Tambah Unit</button>
       <button class="btn bg bsm" onclick="exportXlsx('unit')"><i class="fas fa-file-excel"></i> Excel</button>
       <button class="btn bd bsm" onclick="exportPdfUnits()"><i class="fas fa-file-pdf"></i> PDF</button>
-      <button class="btn bs bsm" onclick="exportJSON()"><i class="fas fa-download"></i> Backup</button>
-      <button class="btn bs bsm" onclick="document.getElementById('impJson').click()"><i class="fas fa-upload"></i> Restore</button>
+      <button class="btn bs bsm" id="btnBackup" onclick="exportJSON()"><i class="fas fa-download"></i> Backup</button>
+      <button class="btn bs bsm" id="btnRestore" onclick="document.getElementById('impJson').click()"><i class="fas fa-upload"></i> Restore</button>
       <input type="file" id="impJson" accept=".json" style="display:none" onchange="importJSON(event)"/>
     </div>
-    <div class="fhint" style="margin:-4px 0 8px">⬇️ Output Excel/PDF master <b>mengikuti filter</b> jenis, kabupaten, status, dan pencarian di panel atas.</div>
-    <div class="fhint" style="margin-bottom:9px">💡 Klik kartu untuk melihat posisi di peta. Gunakan ✏️ untuk edit data alamat, referensi, PIC, dsb.</div>
+    <!-- FILTER LIST MASTER UNIT -->
+    <div class="list-search-bar" style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center">
+      <div style="flex:2;min-width:180px;position:relative">
+        <i class="fas fa-search" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:11px"></i>
+        <input type="text" id="fdSearch" class="fc" placeholder="Cari nama unit / desa / kecamatan..." style="padding-left:30px" oninput="onFilterChange()"/>
+      </div>
+      <select id="fdKab" class="fc" style="flex:1;min-width:140px" onchange="onFilterChange(); renderBoundaries(this.value);">
+        <option value="">📍 Semua Kabupaten/Kota</option>
+      </select>
+      <select id="fdJenis" class="fc" style="flex:1;min-width:120px" onchange="onFilterChange()">
+        <option value="">🏷️ Semua Jenis</option>
+        <option value="SPPG">🍳 SPPG (Dapur)</option>
+        <option value="KDMP">🏪 KDMP (Koperasi)</option>
+      </select>
+      <input type="hidden" id="fdHasil" value="" />
+    </div>
+    <div class="fhint" style="margin:-4px 0 8px">⬇️ Output Excel/PDF master mengikuti filter jenis, kabupaten, dan pencarian di atas.</div>
+    <div class="fhint" style="margin-bottom:9px">💡 Klik kartu untuk melihat posisi di peta.</div>
     <div id="unitList"></div>
   </div>
 
   <!-- TAB: HISTORI -->
   <div class="tcont" id="tab-hist">
     <div style="display:flex;gap:6px;margin-bottom:9px;flex-wrap:wrap">
-      <select id="fHUnit" class="fc" style="flex:2;min-width:120px" onchange="renderHist()"><option value="">Semua Unit</option></select>
-      <select id="fHHasil" class="fc" style="flex:1;min-width:105px" onchange="renderHist()">
-        <option value="">Semua Hasil</option><option value="baik">Baik</option><option value="perbaikan">Perlu Perbaikan</option><option value="kritis">Kritis</option>
-      </select>
-      <input type="date" id="fHTgl" class="fc" style="flex:1;min-width:105px" onchange="renderHist()"/>
+  <!-- TAB: HISTORI -->
+  <div class="tcont" id="tab-hist">
+    <div style="display:flex;gap:6px;margin-bottom:9px;flex-wrap:wrap">
+      <select id="fHUnit" class="fc" style="flex:2;min-width:140px" onchange="renderHist()"><option value="">Semua Unit</option></select>
+      <input type="date" id="fHTgl" class="fc" style="flex:1;min-width:130px" onchange="renderHist()"/>
+      <button class="btn bx" onclick="document.getElementById('fHUnit').value='';document.getElementById('fHTgl').value='';renderHist();" title="Reset Filter">✕ Reset</button>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:10px">
       <button class="btn bg bsm" onclick="exportXlsx('monitoring',true)"><i class="fas fa-file-excel"></i> Excel</button>
       <button class="btn bd bsm" onclick="exportPdfMonitoring()"><i class="fas fa-file-pdf"></i> PDF</button>
-      <button class="btn bd bsm" onclick="confirmClearMon()" style="margin-left:auto"><i class="fas fa-trash"></i> Hapus Semua</button>
+      <button class="btn bd bsm" id="btnClearMon" onclick="confirmClearMon()" style="margin-left:auto"><i class="fas fa-trash"></i> Hapus Semua</button>
     </div>
-    <div class="fhint" style="margin:-4px 0 8px">⬇️ Output Excel/PDF histori <b>mengikuti filter</b> (unit, hasil, tanggal) yang dipilih di atas.</div>
+    <div class="fhint" style="margin:-4px 0 8px">⬇️ Output Excel/PDF histori <b>mengikuti filter</b> (unit, tanggal) yang dipilih di atas.</div>
     <div id="histList"></div>
   </div>
 </div>
@@ -1306,7 +1299,7 @@ textarea.fc {
       <button class="btn bg" onclick="exportXlsxUnit(dtCurrent)"><i class="fas fa-file-excel"></i> Excel</button>
       <button class="btn bd" onclick="exportPdfUnitDetail(dtCurrent)"><i class="fas fa-file-pdf"></i> PDF</button>
       <button class="btn bd" id="dtDelBtn" onclick="confirmDelUnit(dtCurrent)"><i class="fas fa-trash"></i> Hapus</button>
-      <button class="btn bs" onclick="editFromDetail()"><i class="fas fa-edit"></i> Edit</button>
+      <button class="btn bs" id="dtEditBtn" onclick="editFromDetail()"><i class="fas fa-edit"></i> Edit</button>
       <button class="btn bp" onclick="monitorFromDetail()"><i class="fas fa-clipboard-check"></i> Monitoring</button>
     </div>
   </div>
@@ -1390,9 +1383,10 @@ const KABUPATEN = {
   'Kab. Batang':['Batang','Bandar','Warungasem','Wonotunggal','Gringsing','Limpung','Subah','Tulis','Kandeman','Pecalungan','Reban','Bawang','Blado','Tersono']
 };
 const HASIL_META = {
-  baik:{label:'Baik',color:'#16A34A',icon:'🟢'},
-  perbaikan:{label:'Perlu Perbaikan',color:'#D97706',icon:'🟡'},
-  kritis:{label:'Kritis',color:'#B91C1C',icon:'🔴'},
+  sudah:{label:'Sudah Dimonitor',color:'#16A34A',icon:'🟢'},
+  baik:{label:'Sudah Dimonitor',color:'#16A34A',icon:'🟢'},
+  perbaikan:{label:'Sudah Dimonitor',color:'#16A34A',icon:'🟢'},
+  kritis:{label:'Sudah Dimonitor',color:'#16A34A',icon:'🟢'},
   belum:{label:'Belum Dimonitor',color:'#64748B',icon:'⚪'}
 };
 const ASPEK_LABEL = {kebersihan:'Kebersihan',gizi:'Menu & Gizi',distribusi:'Distribusi',dok:'Dokumentasi'};
@@ -1773,7 +1767,6 @@ function renderRekamForm(jenis,rec){
   let h=`<div class="qformtabs"><div class="jopt ${currentRekamForm==='SPPG'?'on-sppg':''}" onclick="switchRekamForm('SPPG')"><div class="jt">🍳 Form SPPG</div></div><div class="jopt ${currentRekamForm==='NAKER'?'on-sppg':''}" onclick="switchRekamForm('NAKER')"><div class="jt">👷 Form Naker</div></div></div>`;
   const data=(rec&&rec.formType===currentRekamForm)?(f.fields):undefined;
   h+=renderGenericForm(formDef,data);
-  h+=`<div class="qbagian">Penilaian Akhir Monitoring</div><div class="qfield"><div class="qfn"><span class="qn">★</span>Hasil / Status Monitoring <span class="rq">*</span></div><select id="rHasilManual" class="fc" onchange="previewHasilManual()"><option value="baik">🟢 Baik</option><option value="perbaikan">🟡 Perlu Perbaikan</option><option value="kritis">🔴 Kritis</option></select><div class="qunit-hint">Disarankan otomatis dari indikator — dapat disesuaikan petugas.</div></div>`;
   root.innerHTML='<div class="qkues">'+h+'</div>';
   const u = unitById(getVal('rUnit'));
   if (currentRekamForm === 'SPPG' && u) {
@@ -1802,8 +1795,6 @@ function renderRekamForm(jenis,rec){
     }
   }
   renderAllMS();
-  setVal('rHasilManual',(rec&&rec.formType===currentRekamForm&&rec.hasil)?rec.hasil:hasilSaran());
-  previewHasilManual();
 }
 function switchRekamForm(k){currentRekamForm=k;const u=unitById(getVal('rUnit'));renderRekamForm(u?u.jenis:null,null);}
 function pickScore(btn){btn.parentNode.querySelectorAll('.qscore-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');calcRekam();}
@@ -2128,15 +2119,15 @@ function buildPopup(u){
        <div class="pk"><b>${esc(u.peran||'—')}</b><span>peran MBG</span></div>
        <div class="pk" style="grid-column:1/3"><b>${esc(u.usaha||'—')}</b><span>unit usaha</span></div>`;
   let hasilHtml;
+  const count = monsOf(u.id).length;
   if(m){
-    const hm=HASIL_META[m.hasil];
-    hasilHtml=`<div class="pop-has ${m.hasil==='baik'?'ok':m.hasil==='perbaikan'?'warn':'bad'}">
-      <b>${hm.icon} ${hm.label}</b> · <i>${fmtD(m.tgl)}</i><br>
+    hasilHtml=`<div class="pop-has ok">
+      <b>🟢 Sudah Dimonitor (${count}x Kunjungan)</b> · Terakhir: <i>${fmtD(m.tgl)}</i><br>
       🔎 Temuan: ${esc(m.temuan||'-')}<br>
       💡 Rekomendasi: ${esc(m.rekom||'-')}
     </div>`;
   }else{
-    hasilHtml=`<div class="pop-has idle">⚪ <b>Belum pernah dimonitoring</b> — jadwalkan kunjungan via tab Monitoring.</div>`;
+    hasilHtml=`<div class="pop-has idle">⚪ <b>Belum Dimonitor</b> — lakukan kunjungan lapangan via tab Monitoring.</div>`;
   }
   return `<div class="pop">
     <div class="pop-hd ${u.jenis.toLowerCase()}">
@@ -2460,7 +2451,15 @@ function delUser(id){
 /* ============================================================
    RENDER: DASHBOARD
 ============================================================ */
-function renderAll(){renderMap();renderDash();renderUnitList();renderHist();refreshUnitSelect();}
+function applyRBAC() {
+  const isAdmin = CU && CU.role === 'admin';
+  const els = ['btnAddUnit', 'btnBackup', 'btnRestore', 'dtDelBtn', 'dtEditBtn', 'btnClearMon'];
+  els.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = isAdmin ? 'inline-flex' : 'none';
+  });
+}
+function renderAll(){renderMap();renderDash();renderUnitList();renderHist();refreshUnitSelect();applyRBAC();}
 function renderDash(){
   const list = filteredUnits();
   const dbBanner=document.getElementById('dashBanner');
@@ -2473,14 +2472,19 @@ function renderDash(){
   document.getElementById('stOper').textContent=oper;
   document.getElementById('stMon').textContent=DB.monitoring.filter(m=>list.some(u=>u.id===m.unitId)).length;
 
-  // hasil bars
-  const cnt={baik:0,perbaikan:0,kritis:0,belum:0};
-  list.forEach(u=>cnt[unitHasil(u)]++);
-  const tot=list.length||1;
-  document.getElementById('hasilBars').innerHTML=Object.keys(HASIL_META).map(h=>{
-    const hm=HASIL_META[h];const pct=Math.round(cnt[h]/tot*100);
-    return `<div class="hrow"><div class="hl">${hm.icon} ${hm.label}</div><div class="hbar-wrap"><div class="hbar" style="width:${Math.max(pct,2)}%;background:${hm.color}"></div></div><div class="hv">${cnt[h]}</div></div>`;
-  }).join('');
+  // progres cakupan
+  const sppgAll = list.filter(u=>u.jenis==='SPPG'), sppgMon = sppgAll.filter(u=>monsOf(u.id).length>0);
+  const kdmpAll = list.filter(u=>u.jenis==='KDMP'), kdmpMon = kdmpAll.filter(u=>monsOf(u.id).length>0);
+  const totAll = list.length || 1, totMon = list.filter(u=>monsOf(u.id).length>0).length;
+  const pSPPG = Math.round(sppgMon.length/(sppgAll.length||1)*100);
+  const pKDMP = Math.round(kdmpMon.length/(kdmpAll.length||1)*100);
+  const pTot = Math.round(totMon/totAll*100);
+
+  document.getElementById('hasilBars').innerHTML = `
+    <div class="hrow" onclick="setMapView('progres','SPPG','mon',null)"><div class="hl" style="width:115px">🍳 SPPG Dimonitor</div><div class="hbar-wrap"><div class="hbar" style="width:${Math.max(pSPPG,2)}%;background:var(--sppg)"></div></div><div class="hv">${sppgMon.length}/${sppgAll.length}</div></div>
+    <div class="hrow" onclick="setMapView('progres','KDMP','mon',null)"><div class="hl" style="width:115px">🏪 KDMP Dimonitor</div><div class="hbar-wrap"><div class="hbar" style="width:${Math.max(pKDMP,2)}%;background:var(--kdmp)"></div></div><div class="hv">${kdmpMon.length}/${kdmpAll.length}</div></div>
+    <div class="hrow" onclick="setMapView('progres','','mon',null)"><div class="hl" style="width:115px">🟢 Total Cakupan</div><div class="hbar-wrap"><div class="hbar" style="width:${Math.max(pTot,2)}%;background:var(--ok)"></div></div><div class="hv">${pTot}%</div></div>
+  `;
 
   // kabupaten bars
   const kabs=Object.entries(KABUPATEN).map(([kab])=>{
@@ -2495,27 +2499,25 @@ function renderDash(){
       <div class="hv">${x.n}</div>
     </div>`).join('');
 
-  // attention: kritis > perbaikan > belum (max 6)
-  const rank={kritis:0,perbaikan:1,belum:2,baik:3};
-  const attn=list.filter(u=>['kritis','perbaikan','belum'].includes(unitHasil(u)))
-     .sort((a,b)=>rank[unitHasil(a)]-rank[unitHasil(b)]).slice(0,6);
-  document.getElementById('attnList').innerHTML=attn.length?attn.map(u=>{
-    const h=unitHasil(u);const m=lastMon(u.id);
+  // target sasaran unit belum dimonitor (0 kunjungan)
+  const unmon = list.filter(u=>monsOf(u.id).length === 0)
+     .sort((a,b)=> (a.jenis==='SPPG'?-1:1) || a.nama.localeCompare(b.nama)).slice(0,6);
+  document.getElementById('attnList').innerHTML=unmon.length?unmon.map(u=>{
     return `<div class="krow" onclick="openDetail('${u.id}')">
-      <div class="kbadge ${u.jenis.toLowerCase()} ${h}">${u.jenis==='SPPG'?'S':'K'}</div>
-      <div class="kinfo"><div class="kname">${esc(u.nama)}</div><div class="ksub">${esc(u.kec)}, ${esc(u.kab)}${m?' · '+fmtD(m.tgl):' · belum ada kunjungan'}</div></div>
-      <div class="kchip ${h}">${HASIL_META[h].label}</div>
+      <div class="kbadge ${u.jenis.toLowerCase()} belum">${u.jenis==='SPPG'?'S':'K'}</div>
+      <div class="kinfo"><div class="kname">${esc(u.nama)}</div><div class="ksub">${esc(u.desa)}, Kec. ${esc(u.kec)}, ${esc(u.kab)} · <b style="color:var(--brand)">Belum Kunjungan</b></div></div>
+      <div class="kchip belum">⚪ Belum Dimonitor</div>
     </div>`;
-  }).join(''):'<div class="empty"><i class="fas fa-check-circle"></i><p>Semua unit dalam kondisi baik 🎉</p></div>';
+  }).join(''):'<div class="empty"><i class="fas fa-check-circle"></i><p>Semua unit sudah dimonitor 🎉</p></div>';
 
   // recent monitoring
   const rec=[...DB.monitoring].sort((a,b)=>b.tgl.localeCompare(a.tgl)).slice(0,5);
   document.getElementById('recentMon').innerHTML=rec.length?rec.map(m=>{
     const u=unitById(m.unitId);if(!u)return '';
     return `<div class="krow" onclick="openDetail('${u.id}')">
-      <div class="kbadge ${u.jenis.toLowerCase()} ${m.hasil}">${u.jenis==='SPPG'?'S':'K'}</div>
+      <div class="kbadge ${u.jenis.toLowerCase()} baik">${u.jenis==='SPPG'?'S':'K'}</div>
       <div class="kinfo"><div class="kname">${esc(u.nama)}</div><div class="ksub">${fmtD(m.tgl)} · oleh ${esc(m.petugas)}</div></div>
-      <div class="kchip ${m.hasil}">${HASIL_META[m.hasil].label}</div>
+      <div class="kchip baik">🟢 Sudah Dimonitor</div>
     </div>`;
   }).join(''):'<div class="empty"><i class="fas fa-inbox"></i><p>Belum ada monitoring</p></div>';
 }
@@ -2579,13 +2581,13 @@ function renderUnitList(){
       <div class="hc-top">
         <div class="kbadge ${u.jenis.toLowerCase()} ${h}">${u.jenis==='SPPG'?'S':'K'}</div>
         <div class="hc-name">${esc(u.nama)}</div>
-        <div class="kchip ${h}">${HASIL_META[h].label}</div>
+        <div class="kchip ${monsOf(u.id).length>0 ? 'baik' : 'belum'}">${monsOf(u.id).length>0 ? '🟢 Sudah Dimonitor (' + monsOf(u.id).length + 'x)' : '⚪ Belum Dimonitor'}</div>
       </div>
       <div style="font-size:10px;color:var(--text3);margin:2px 0 3px">📍 ${esc(u.alamat)}, ${esc(u.kec)}, ${esc(u.kab)}</div>
       <div style="font-size:9.5px;color:var(--text3)">📂 ${esc(u.ref||'—')} · ${statusUnitLabel(u.status)}${u.pic?' · 👤 '+esc(u.pic):''}</div>
       <div class="hc-actions" onclick="event.stopPropagation()">
         <button class="btn bs bsm" onclick="openDetail('${u.id}')"><i class="fas fa-eye"></i> Detail</button>
-        <button class="btn bx bsm" onclick="openUnitModal('${u.id}')"><i class="fas fa-edit"></i> Edit</button>
+        ${CU&&CU.role==='admin'?`<button class="btn bx bsm" onclick="openUnitModal('${u.id}')"><i class="fas fa-edit"></i> Edit</button>`:''}
         <button class="btn bp bsm" onclick="addMonitorFor('${u.id}')"><i class="fas fa-clipboard-check"></i> Monitoring</button>
         ${CU&&CU.role==='admin'?`<button class="btn bd bsm" onclick="confirmDelUnit('${u.id}')"><i class="fas fa-trash"></i></button>`:''}
       </div>
@@ -2709,7 +2711,7 @@ function openDetail(id){
       ? `<div style="margin-top:8px"><img src="${fotoVal}" style="max-height:160px;max-width:100%;border-radius:8px;border:1px solid var(--border)"/></div>`
       : '';
     return `<div class="mon-item">
-      <div class="mon-top"><span class="mon-date">📅 ${fmtD(m.tgl)} · Tim: ${esc(m.petugas)}</span>${scoreTag}<span class="kchip ${m.hasil}">${HASIL_META[m.hasil].label}</span></div>
+      <div class="mon-top"><span class="mon-date">📅 ${fmtD(m.tgl)} · Tim: ${esc(m.petugas)}</span>${scoreTag}<span class="kchip baik">🟢 Sudah Dimonitor</span></div>
       <div style="display:flex;gap:4px;flex-wrap:wrap">${asp}</div>
       <div class="mon-t"><b>Temuan:</b> ${esc(m.temuan||'-')}</div>
       <div class="mon-t"><b>Rekomendasi:</b> ${esc(m.rekom||'-')}</div>
@@ -3083,10 +3085,9 @@ function addMonitorFor(id){
    HISTORI
 ============================================================ */
 function renderHist(){
-  const fu=getVal('fHUnit'),fh=getVal('fHHasil'),ft=getVal('fHTgl');
+  const fu=getVal('fHUnit'),ft=getVal('fHTgl');
   let list=[...DB.monitoring].sort((a,b)=>b.tgl.localeCompare(a.tgl)||b.id.localeCompare(a.id));
   if(fu)list=list.filter(m=>m.unitId===fu);
-  if(fh)list=list.filter(m=>m.hasil===fh);
   if(ft)list=list.filter(m=>m.tgl===ft);
   const el=document.getElementById('histList');
   el.innerHTML=list.length?list.map(m=>{
@@ -3095,9 +3096,9 @@ function renderHist(){
     const scoreTag=(m.form&&m.jenis==='KDMP'&&m.form.avg!=null)?`<span class="kchip" style="background:#1E3A8A;color:#fff;margin-right:4px">⭐ ${m.form.avg}</span>`:'';
     return `<div class="hcard" onclick="openDetail('${u.id}')">
       <div class="hc-top">
-        <div class="kbadge ${u.jenis.toLowerCase()} ${m.hasil}">${u.jenis==='SPPG'?'S':'K'}</div>
+        <div class="kbadge ${u.jenis.toLowerCase()} baik">${u.jenis==='SPPG'?'S':'K'}</div>
         <div class="hc-name">${esc(u.nama)}</div>
-        ${scoreTag}<div class="kchip ${m.hasil}">${HASIL_META[m.hasil].label}</div>
+        ${scoreTag}<div class="kchip baik">🟢 Sudah Dimonitor</div>
       </div>
       <div class="hc-date">📅 ${fmtD(m.tgl)} · 👤 ${esc(m.petugas)}</div>
       <div class="hc-aspects">${monDetailAspects(m)}</div>
@@ -3106,7 +3107,7 @@ function renderHist(){
         <button class="btn bd bsm" onclick="cetakMon('${m.id}')"><i class="fas fa-file-pdf"></i> PDF</button>
         <button class="btn bs bsm" onclick="cetakMonDocx('${m.id}')"><i class="fas fa-file-word"></i> DOCX</button>
         <button class="btn bg bsm" onclick="cetakMonExcel('${m.id}')"><i class="fas fa-file-excel"></i> Excel</button>
-        <button class="btn bx bsm" onclick="openEditMon('${m.id}')"><i class="fas fa-edit"></i> Edit</button>
+        ${CU&&CU.role==='admin'?`<button class="btn bx bsm" onclick="openEditMon('${m.id}')"><i class="fas fa-edit"></i> Edit</button>`:''}
         ${CU&&CU.role==='admin'?`<button class="btn bd bsm" onclick="confirmDelMon('${m.id}')"><i class="fas fa-trash"></i> Hapus</button>`:''}
       </div>
     </div>`;
@@ -3201,10 +3202,9 @@ const TBL_HEAD={fillColor:[200,16,46],textColor:[255,255,255],fontSize:7.5,fontS
 const TBL_ALT={alternateRowStyles:{fillColor:[254,242,242]}};
 function exportPdfMonitoring(){
   const jsPDF=getJsPDF();if(!jsPDF)return;
-  const fu=getVal('fHUnit'),fh=getVal('fHHasil'),ft=getVal('fHTgl');
+  const fu=getVal('fHUnit'),ft=getVal('fHTgl');
   let list=[...DB.monitoring].sort((a,b)=>a.tgl.localeCompare(b.tgl));
   if(fu)list=list.filter(m=>m.unitId===fu);
-  if(fh)list=list.filter(m=>m.hasil===fh);
   if(ft)list=list.filter(m=>m.tgl===ft);
   if(!list.length){toast('Tidak ada data monitoring sesuai filter','e');return;}
   const doc=new jsPDF({orientation:'l',unit:'mm',format:'a4'});
@@ -3356,9 +3356,8 @@ function exportXlsx(mode,useFilters){
   }
   let mons=DB.monitoring;
   if(useFilters){
-    const fu=getVal('fHUnit'),fh=getVal('fHHasil'),ft=getVal('fHTgl');
+    const fu=getVal('fHUnit'),ft=getVal('fHTgl');
     if(fu)mons=mons.filter(m=>m.unitId===fu);
-    if(fh)mons=mons.filter(m=>m.hasil===fh);
     if(ft)mons=mons.filter(m=>m.tgl===ft);
     if(!mons.length){toast('Tidak ada data monitoring sesuai filter untuk diekspor','e');return;}
   }
@@ -3904,5 +3903,5 @@ function cetakMonDocx(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28f163d7baffd91',t:'MTc4NjM2NTgxMw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a29018348aaee782',t:'MTc4NjM3NjM3OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
