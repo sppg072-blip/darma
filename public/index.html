@@ -1282,7 +1282,7 @@ textarea.fc {
   <div class="tcont" id="tab-laporan">
     <div class="rpt-hero">
       <h3><i class="fas fa-chart-line"></i> Laporan Manajemen Otomatis</h3>
-      <p>Rekap, peta, grafik, narasi kondisi lapangan, unit prioritas, dan rekomendasi disusun otomatis menjadi PowerPoint modern yang siap ditinjau pimpinan.</p>
+      <p>Rekap, peta analitis, rasio wilayah, grafik donut/kolom/garis/radar, narasi kondisi lapangan, unit prioritas, dan rekomendasi disusun otomatis menjadi PowerPoint modern untuk pengambilan keputusan.</p>
     </div>
 
     <div class="rpt-panel">
@@ -1304,7 +1304,7 @@ textarea.fc {
         <div class="fg"><label class="fl">Tanggal Awal</label><input id="rptStart" type="date" class="fc" onchange="markReportStale()"/></div>
         <div class="fg"><label class="fl">Tanggal Akhir</label><input id="rptEnd" type="date" class="fc" onchange="markReportStale()"/></div>
         <div class="fg"><label class="fl">Wilayah</label><select id="rptRegion" class="fc" onchange="markReportStale()"><option value="">Semua Kabupaten/Kota</option><option>Kota Pekalongan</option><option>Kab. Pekalongan</option><option>Kab. Batang</option></select></div>
-        <div class="fg"><label class="fl">Kedalaman Presentasi</label><select id="rptMode" class="fc" onchange="markReportStale()"><option value="ringkas">Ringkas — sekitar 8 slide</option><option value="lengkap" selected>Lengkap — 10–12 slide</option></select></div>
+        <div class="fg"><label class="fl">Kedalaman Presentasi</label><select id="rptMode" class="fc" onchange="markReportStale()"><option value="ringkas">Ringkas — sekitar 8 slide</option><option value="lengkap" selected>Lengkap — 11–13 slide</option></select></div>
         <div class="fg"><label class="fl">Nama Penyusun</label><input id="rptAuthor" class="fc" value="Tim Monitoring DARMA" oninput="markReportStale()"/></div>
         <div class="fg"><label class="fl">Instansi / Organisasi</label><input id="rptOrg" class="fc" value="DARMA — Dashboard Akurat Reporting Manajemen Aplikasi" oninput="markReportStale()"/></div>
       </div>
@@ -1761,15 +1761,15 @@ function formFieldHtml(f,data){
           <i class="fas fa-camera"></i> Ambil Foto
           <input type="file" accept="image/*" capture="environment" style="display:none" onchange="capturePhotoMS('${id}', event, 'camera')" />
         </label>
-        <label class="btn bs bsm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px">
-          <i class="fas fa-image"></i> Upload Gambar
-          <input type="file" accept="image/*" style="display:none" onchange="capturePhotoMS('${id}', event, 'upload')" />
+        <label class="btn bs bsm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px" title="Pilih gambar melalui aplikasi File/Dokumen tanpa meminta izin kamera">
+          <i class="fas fa-file-image"></i> Upload Gambar
+          <input type="file" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none" onchange="capturePhotoMS('${id}', event, 'upload')" />
         </label>
         <button type="button" class="btn bx bsm" id="pdel_${id}" onclick="deletePhotoMS('${id}')" style="display:${val?'inline-flex':'none'}">
           <i class="fas fa-trash"></i> Hapus Gambar
         </button>
       </div>
-      <div class="fhint" style="margin-top:6px">Format gambar JPG, PNG, atau WebP · maksimal 10 MB · otomatis dikompresi sebelum disimpan.</div>
+      <div class="fhint" style="margin-top:6px">JPG, PNG, atau WebP · maksimal 10 MB · otomatis dikompresi. <b>Upload Gambar</b> memakai pemilih File/Dokumen agar tidak memerlukan izin kamera/media. Jika kamera ditolak, izinkan Kamera pada pengaturan browser.</div>
       <div class="photo-preview" id="prev_${id}" style="margin-top:8px;display:${val?'block':'none'}">
         ${val ? `<img src="${val}" alt="Dokumentasi kegiatan" style="max-height:220px;max-width:100%;border-radius:10px;border:2px solid var(--border);box-shadow:var(--sh);object-fit:contain"/>` : ''}
       </div>
@@ -3105,8 +3105,10 @@ function capturePhotoMS(id, e, source) {
   const picker=e&&e.target;
   const file=picker&&picker.files&&picker.files[0];
   if(!file)return;
-  if(!/^image\//i.test(file.type||'')){
-    toast('File harus berupa gambar JPG, PNG, atau WebP','e');
+  const extOk=/\.(jpe?g|png|webp)$/i.test(file.name||'');
+  const mimeOk=/^image\/(jpeg|jpg|png|webp)$/i.test(file.type||'');
+  if(!mimeOk&&!extOk){
+    toast('Pilih file gambar JPG, PNG, atau WebP','e');
     picker.value='';return;
   }
   if(file.size>10*1024*1024){
@@ -4129,5 +4131,5 @@ function cetakMonDocx(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a29847799dfb58f8',t:'MTc4NjQ2MjIwMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2986cd1de6d145b',t:'MTc4NjQ2MzczMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
