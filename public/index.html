@@ -11,6 +11,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/docx@7.1.1/build/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<script src="./report-ppt.js"></script>
 <style>
 :root{
   --bg:#f1f5f9;--bg2:#ffffff;--bg3:#f8fafc;
@@ -955,6 +957,19 @@ textarea.fc {
   }
 }
 
+/* ============ LAPORAN MANAJEMEN / POWERPOINT ============ */
+.rpt-hero{background:linear-gradient(135deg,#0b1f3a 0%,#15345b 62%,#c8102e 150%);border-radius:16px;padding:18px;color:#fff;margin-bottom:14px;position:relative;overflow:hidden;box-shadow:0 10px 28px rgba(11,31,58,.2)}
+.rpt-hero::after{content:'';position:absolute;width:150px;height:150px;border:25px solid rgba(255,255,255,.07);border-radius:50%;right:-55px;top:-60px}
+.rpt-hero h3{font-size:17px;margin:0 0 5px;position:relative;z-index:1}.rpt-hero p{font-size:10.5px;line-height:1.55;color:#dbeafe;max-width:82%;position:relative;z-index:1}
+.rpt-type-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:13px}.rpt-type-card{border:2px solid var(--border);background:var(--bg2);border-radius:14px;padding:12px;cursor:pointer;transition:var(--tr);position:relative}.rpt-type-card:hover{transform:translateY(-2px);box-shadow:var(--sh)}.rpt-type-card.active{border-color:var(--brand);background:var(--brand-bg);box-shadow:0 0 0 3px rgba(200,16,46,.09)}
+.rpt-type-card .ri{font-size:20px;margin-bottom:6px}.rpt-type-card b{display:block;font-size:11px;color:var(--text)}.rpt-type-card small{display:block;font-size:8.8px;color:var(--text3);line-height:1.4;margin-top:4px}.rpt-type-card.active::after{content:'✓';position:absolute;right:9px;top:8px;background:var(--brand);color:#fff;width:19px;height:19px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:900}
+.rpt-panel{border:1px solid var(--border);border-radius:15px;background:var(--bg2);padding:13px;margin-bottom:12px;box-shadow:var(--sh)}.rpt-panel-title{font-size:11px;font-weight:900;color:var(--text);display:flex;align-items:center;gap:7px;margin-bottom:10px}.rpt-panel-title i{color:var(--brand)}
+.rpt-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.rpt-form-grid .fg{margin-bottom:0}.rpt-span-2{grid-column:1/3}
+.rpt-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}.rpt-kpi{border:1px solid var(--border);border-radius:12px;background:var(--bg3);padding:10px 8px;min-height:64px;position:relative;overflow:hidden}.rpt-kpi::after{content:'';position:absolute;right:-14px;bottom:-14px;width:45px;height:45px;border-radius:50%;background:currentColor;opacity:.08}.rpt-kpi b{display:block;font-size:18px;color:var(--brand);line-height:1.1}.rpt-kpi span{display:block;font-size:8.5px;font-weight:800;color:var(--text3);margin-top:5px;text-transform:uppercase}.rpt-kpi.k2 b{color:var(--ok)}.rpt-kpi.k3 b{color:var(--warn)}.rpt-kpi.k4 b{color:#0891b2}.rpt-kpi.k5 b{color:#7c3aed}.rpt-kpi.k6 b{color:#2563eb}
+.rpt-editor{min-height:125px;line-height:1.55;font-size:10.5px}.rpt-editor.recs{min-height:150px}.rpt-data-note{font-size:9.5px;color:var(--text2);line-height:1.55;border-left:4px solid #0891b2;background:#ecfeff;padding:9px 10px;border-radius:9px;margin-top:9px}
+.rpt-actions{display:flex;gap:8px;position:sticky;bottom:0;background:linear-gradient(180deg,transparent,var(--bg2) 20%);padding:16px 0 5px;z-index:4}.rpt-actions .btn{flex:1}.rpt-status{font-size:9.5px;color:var(--text2);padding:9px 10px;border:1px dashed var(--border);border-radius:9px;background:var(--bg3);margin-top:9px;line-height:1.4}.rpt-status i{margin-right:5px}
+@media(max-width:600px){.tbar{overflow-x:auto}.tbtn{min-width:66px;font-size:9.5px}.rpt-form-grid{grid-template-columns:1fr}.rpt-span-2{grid-column:1}.rpt-kpis{grid-template-columns:repeat(2,1fr)}.rpt-hero p{max-width:100%}.rpt-actions{flex-direction:column}.rpt-actions .btn{width:100%}}
+
 /* ============ CETAK / PRINT (hanya aktif saat body.printing) ============ */
 #printRoot{display:none;position:fixed;left:-99999px;top:0;width:210mm;background:#fff;}
 @media print{
@@ -1104,6 +1119,7 @@ textarea.fc {
     <button class="tbtn" onclick="goTab('rekam')" data-t="rekam"><i class="fas fa-clipboard-check"></i>Monitoring</button>
     <button class="tbtn" onclick="goTab('unit')" data-t="unit"><i class="fas fa-database"></i>Master Unit</button>
     <button class="tbtn" onclick="goTab('hist')" data-t="hist"><i class="fas fa-history"></i>Histori</button>
+    <button class="tbtn" id="btnReportTab" onclick="goTab('laporan')" data-t="laporan"><i class="fas fa-file-powerpoint"></i>Laporan</button>
   </div>
 
   <!-- TAB: DASHBOARD -->
@@ -1141,8 +1157,9 @@ textarea.fc {
     <div class="sec-title"><i class="fas fa-clock"></i> Monitoring Terbaru</div>
     <div id="recentMon"></div>
     <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
-      <button class="btn bp" style="flex:1;min-width:240px" onclick="exportPdfDash()"><i class="fas fa-file-pdf"></i> Unduh Laporan Ringkasan (PDF)</button>
-      <button class="btn bg" style="flex:1;min-width:240px" onclick="exportXlsx('unit')"><i class="fas fa-file-excel"></i> Unduh Data Lengkap (Excel)</button>
+      <button class="btn bp" style="flex:1;min-width:210px" onclick="exportPdfDash()"><i class="fas fa-file-pdf"></i> Ringkasan PDF</button>
+      <button class="btn bg" style="flex:1;min-width:210px" onclick="exportXlsx('unit')"><i class="fas fa-file-excel"></i> Data Excel</button>
+      <button class="btn bs" id="btnDashReport" style="flex:1;min-width:210px;background:linear-gradient(135deg,#0b1f3a,#c8102e);color:#fff" onclick="goTab('laporan')"><i class="fas fa-file-powerpoint"></i> Buat Laporan Manajemen</button>
     </div>
   </div>
 
@@ -1259,6 +1276,53 @@ textarea.fc {
     </div>
     <div class="fhint" style="margin:-4px 0 8px">⬇️ Output Excel/PDF histori <b>mengikuti filter</b> (unit, tanggal) yang dipilih di atas.</div>
     <div id="histList"></div>
+  </div>
+
+  <!-- TAB: LAPORAN MANAJEMEN -->
+  <div class="tcont" id="tab-laporan">
+    <div class="rpt-hero">
+      <h3><i class="fas fa-chart-line"></i> Laporan Manajemen Otomatis</h3>
+      <p>Rekap, peta, grafik, narasi kondisi lapangan, unit prioritas, dan rekomendasi disusun otomatis menjadi PowerPoint modern yang siap ditinjau pimpinan.</p>
+    </div>
+
+    <div class="rpt-panel">
+      <div class="rpt-panel-title"><i class="fas fa-layer-group"></i> 1. Pilih Jenis Presentasi</div>
+      <div class="rpt-type-grid">
+        <div class="rpt-type-card active" data-kind="sppg" onclick="selectReportKind('sppg')">
+          <div class="ri">🍳</div><b>SPPG & Tenaga Kerja</b><small>Penerima, sekolah, operasional, keamanan pangan, Naker, temuan, dan rekomendasi.</small>
+        </div>
+        <div class="rpt-type-card" data-kind="kdmp" onclick="selectReportKind('kdmp')">
+          <div class="ri">🏪</div><b>KDMP</b><small>Skor delapan dimensi, kepatuhan, tata kelola, dampak, prioritas, dan rekomendasi.</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="rpt-panel">
+      <div class="rpt-panel-title"><i class="fas fa-sliders-h"></i> 2. Konfigurasi Laporan</div>
+      <div class="rpt-form-grid">
+        <div class="fg rpt-span-2"><label class="fl">Judul Presentasi</label><input id="rptTitle" class="fc" value="Laporan Manajemen Monitoring SPPG dan Tenaga Kerja" oninput="markReportStale()"/></div>
+        <div class="fg"><label class="fl">Tanggal Awal</label><input id="rptStart" type="date" class="fc" onchange="markReportStale()"/></div>
+        <div class="fg"><label class="fl">Tanggal Akhir</label><input id="rptEnd" type="date" class="fc" onchange="markReportStale()"/></div>
+        <div class="fg"><label class="fl">Wilayah</label><select id="rptRegion" class="fc" onchange="markReportStale()"><option value="">Semua Kabupaten/Kota</option><option>Kota Pekalongan</option><option>Kab. Pekalongan</option><option>Kab. Batang</option></select></div>
+        <div class="fg"><label class="fl">Kedalaman Presentasi</label><select id="rptMode" class="fc" onchange="markReportStale()"><option value="ringkas">Ringkas — sekitar 8 slide</option><option value="lengkap" selected>Lengkap — 10–12 slide</option></select></div>
+        <div class="fg"><label class="fl">Nama Penyusun</label><input id="rptAuthor" class="fc" value="Tim Monitoring DARMA" oninput="markReportStale()"/></div>
+        <div class="fg"><label class="fl">Instansi / Organisasi</label><input id="rptOrg" class="fc" value="DARMA — Dashboard Akurat Reporting Manajemen Aplikasi" oninput="markReportStale()"/></div>
+      </div>
+    </div>
+
+    <div class="rpt-panel">
+      <div class="rpt-panel-title"><i class="fas fa-calculator"></i> 3. Pratinjau Rekap Otomatis</div>
+      <div class="rpt-kpis" id="rptKpis"></div>
+      <div class="fg"><label class="fl">Narasi Ringkasan Eksekutif <span class="fhint">— otomatis, dapat diedit</span></label><textarea id="rptNarrative" class="fc rpt-editor"></textarea></div>
+      <div class="fg"><label class="fl">Rekomendasi Manajerial <span class="fhint">— otomatis, dapat diedit</span></label><textarea id="rptRecommendations" class="fc rpt-editor recs"></textarea></div>
+      <div class="rpt-data-note" id="rptDataNote">Pilih konfigurasi lalu klik Tinjau Ringkasan.</div>
+      <div class="rpt-status" id="rptStatus"><i class="fas fa-circle" style="color:#f59e0b"></i> Belum dihitung.</div>
+    </div>
+
+    <div class="rpt-actions">
+      <button class="btn bs" onclick="previewManagementReport(true)"><i class="fas fa-sync-alt"></i> Tinjau / Hitung Ulang</button>
+      <button class="btn bp" id="rptGenerateBtn" onclick="generateManagementPpt()"><i class="fas fa-file-powerpoint"></i> Unduh PowerPoint</button>
+    </div>
   </div>
 </div>
 
@@ -2010,6 +2074,7 @@ const DEF = {
 };
 
 let DB = JSON.parse(JSON.stringify(DEF));
+window.getDarmaDB=()=>DB;
 let CU = null;
 let map, layerStreet, layerSat, layerMode='street', boundariesLayer;
 let markers = [];
@@ -2057,10 +2122,11 @@ async function loadDBAsync(){
   }
   API.mode='local';loadDB();return null;
 }
-function persist(kind,item){saveDB();if(API.mode==='cloud')API.upsert(kind,item).then(ok=>{if(!ok)toast('Gagal menyimpan ke cloud','e');});}
-function persistRemove(kind,id){saveDB();if(API.mode==='cloud')API.remove(kind,id).then(ok=>{if(!ok)toast('Gagal menghapus di cloud','e');});}
-function persistClear(kind){saveDB();if(API.mode==='cloud')API.clear(kind).then(ok=>{if(!ok)toast('Gagal sync cloud','e');});}
-function persistReplace(){saveDB();if(API.mode==='cloud')API.replaceAll(DB).then(ok=>{if(!ok)toast('Gagal sync cloud','e');});}
+function reportDataChanged(){if(typeof markReportStale==='function')markReportStale();}
+function persist(kind,item){saveDB();reportDataChanged();if(API.mode==='cloud')API.upsert(kind,item).then(ok=>{if(!ok)toast('Gagal menyimpan ke cloud','e');});}
+function persistRemove(kind,id){saveDB();reportDataChanged();if(API.mode==='cloud')API.remove(kind,id).then(ok=>{if(!ok)toast('Gagal menghapus di cloud','e');});}
+function persistClear(kind){saveDB();reportDataChanged();if(API.mode==='cloud')API.clear(kind).then(ok=>{if(!ok)toast('Gagal sync cloud','e');});}
+function persistReplace(){saveDB();reportDataChanged();if(API.mode==='cloud')API.replaceAll(DB).then(ok=>{if(!ok)toast('Gagal sync cloud','e');});}
 function updateModeBadge(){const b=document.getElementById('modeBadge');if(!b)return;b.style.display='flex';if(API.mode==='cloud'){b.innerHTML='☁️ Cloud (D1)';b.style.background='#eff6ff';b.style.color='#1e40af';b.style.borderColor='#bfdbfe';}else{b.innerHTML='💾 Lokal (browser)';b.style.background='#f1f5f9';b.style.color='#475569';b.style.borderColor='#e2e8f0';}}
 function loadSampleCloud(){DB=JSON.parse(JSON.stringify(DEF));persistReplace();renderAll();toast('☁️ Data contoh dimuat ke cloud');}
 function closeM(id){document.getElementById(id).classList.add('hidden');}
@@ -2415,6 +2481,7 @@ function goTab(t){
   if(t==='unit')renderUnitList();
   if(t==='hist')renderHist();
   if(t==='rekam')refreshUnitSelect();
+  if(t==='laporan'&&typeof initReportPanel==='function')initReportPanel();
 }
 function toggleSB(force){
   const sb=document.getElementById('sidebar');
@@ -2542,6 +2609,8 @@ function applyRBAC() {
     const el = document.getElementById(id);
     if (el) el.style.display = isAdmin ? 'inline-flex' : 'none';
   });
+  const rptTab=document.getElementById('btnReportTab');if(rptTab)rptTab.style.display=isAdmin?'flex':'none';
+  const rptDash=document.getElementById('btnDashReport');if(rptDash)rptDash.style.display=isAdmin?'inline-flex':'none';
 }
 function renderAll(){renderMap();renderDash();renderUnitList();renderHist();refreshUnitSelect();applyRBAC();}
 function renderDash(){
@@ -4060,5 +4129,5 @@ function cetakMonDocx(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a297e8583a13910a',t:'MTc4NjQ1ODMwNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a29847799dfb58f8',t:'MTc4NjQ2MjIwMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
