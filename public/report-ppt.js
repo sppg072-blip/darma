@@ -116,13 +116,37 @@
       if (score) priority.push({ unit: u, mon: m, score, reasons });
     });
     priority.sort((a, b) => b.score - a.score || a.unit.nama.localeCompare(b.unit.nama));
+    REGION_ORDER.forEach(r=>{
+      const x=byRegion[r];
+      x.unmonitored=x.units-x.monitored;
+      x.share=pct(x.units,units.length);
+      x.visitRatio=x.monitored?x.visits/x.monitored:0;
+      x.capacity=sum(units.filter(u=>u.kab===r).map(u=>u.kapasitas));
+      x.priority=priority.filter(p=>p.unit.kab===r).length;
+    });
+    const districtMap={};
+    units.forEach(u=>{const key=(u.kab||'')+'|'+(u.kec||'Tidak diketahui');if(!districtMap[key])districtMap[key]={label:u.kec||'Tidak diketahui',region:u.kab||'',units:0,monitored:0,visits:0};districtMap[key].units++;const vc=visitsByUnit[u.id]||0;if(vc)districtMap[key].monitored++;districtMap[key].visits+=vc;});
+    const topDistricts=Object.values(districtMap).map(x=>Object.assign(x,{coverage:pct(x.monitored,x.units),share:pct(x.units,units.length)})).sort((a,b)=>b.units-a.units||a.label.localeCompare(b.label));
+    const weekly={};
+    monitoring.forEach(m=>{const dt=new Date((m.tgl||'')+'T00:00:00');if(isNaN(dt))return;const day=(dt.getDay()+6)%7;dt.setDate(dt.getDate()-day);const key=dt.toISOString().slice(0,10);weekly[key]=(weekly[key]||0)+1;});
+    const visitTrend=Object.entries(weekly).sort((a,b)=>a[0].localeCompare(b[0])).slice(-12).map(([k,v])=>({label:new Date(k+'T00:00:00').toLocaleDateString('id-ID',{day:'2-digit',month:'short'}),value:v}));
     return {
-      db, cfg, units, monitoring, visitsByUnit, visited, latest, status, byRegion, freq, priority,
+      db, cfg, units, monitoring, visitsByUnit, visited, latest, status, byRegion, freq, priority,topDistricts,visitTrend,
       total: units.length, visits: monitoring.length, monitored: visited.size,
       unmonitored: units.length - visited.size, coverage: pct(visited.size, units.length),
+      geoValid:units.filter(u=>Number.isFinite(n(u.lat))&&Number.isFinite(n(u.lng))&&n(u.lat)!==0&&n(u.lng)!==0).length,
+      avgVisits:visited.size?monitoring.length/visited.size:0,
       critical: [...latest.values()].filter(m => m.hasil === 'kritis').length,
       improvement: [...latest.values()].filter(m => m.hasil === 'perbaikan').length
     };
+  }
+
+  function geoInsight(a){
+    const active=REGION_ORDER.filter(r=>a.byRegion[r]&&a.byRegion[r].units);if(!active.length)return '';
+    const concentration=active.map(r=>[r,a.byRegion[r].share]).sort((x,y)=>y[1]-x[1])[0];
+    const low=active.map(r=>[r,a.byRegion[r].coverage]).sort((x,y)=>x[1]-y[1])[0];
+    const district=(a.topDistricts||[])[0];
+    return `${concentration[0]} menampung ${fmtPct(concentration[1])} dari seluruh unit dalam cakupan. Cakupan monitoring terendah berada di ${low[0]} (${fmtPct(low[1])}).${district?` Konsentrasi kecamatan tertinggi terdapat di ${district.label} dengan ${fmt(district.units)} unit.`:''}`;
   }
 
   function findingSummary(monitoring, extraTexts) {
@@ -209,6 +233,7 @@
         ? `Form operasional SPPG terbaru tersedia untuk ${fmt(snapshots.length)} unit (${fmtPct(pct(snapshots.length, a.total))} dari unit terdaftar).`
         : 'Belum tersedia form operasional SPPG terisi pada periode ini; analisis rinci ditampilkan sebagai kebutuhan kelengkapan data.'
     ];
+    const spatial=geoInsight(a);if(spatial)parts.push(spatial);
     if (benefFilled) parts.push(`Dari ${fmt(benefFilled)} SPPG yang mengisi data penerima, tercatat ${fmt(benefTotal)} penerima/porsi per hari; kelompok siswa berjumlah ${fmt(benef.siswa)} (${fmtPct(pct(benef.siswa, benefTotal))}).`);
     if (schoolFilled) parts.push(`Jaringan layanan mencakup ${fmt(schoolTotal)} sekolah; jenjang terbanyak adalah ${topEntries(schools, 1).map(([k, v]) => schoolLabels[k] + ' (' + fmt(v) + ')')[0]}.`);
     if (safety.digestive || safety.noSample || safety.riskyWaste) parts.push(`Terdapat sinyal risiko keamanan pangan: ${fmt(safety.digestive)} laporan gangguan pencernaan, ${fmt(safety.noSample)} unit tanpa uji sampel, dan ${fmt(safety.riskyWaste)} unit dengan pengelolaan limbah berisiko.`);
@@ -261,6 +286,7 @@
       `Pada ${period}, terdapat ${fmt(a.total)} KDMP dalam cakupan laporan. ${fmt(a.monitored)} unit telah dimonitor (${fmtPct(a.coverage)}), sementara ${fmt(a.unmonitored)} unit belum dimonitor.`,
       snapshots.length ? `Kuesioner KDMP lengkap tersedia untuk ${fmt(snapshots.length)} unit dengan skor rata-rata ${fmt(avgScore, 2)} dari 4,00.` : 'Belum tersedia kuesioner KDMP terisi untuk analisis dimensi.'
     ];
+    const spatial=geoInsight(a);if(spatial)parts.push(spatial);
     if (Object.keys(dims).length) {
       const high = topEntries(dims, 1)[0], low = Object.entries(dims).sort((x, y) => x[1] - y[1])[0];
       parts.push(`Dimensi tertinggi adalah ${high[0]} (${fmt(high[1], 2)}), sedangkan perhatian terbesar diperlukan pada ${low[0]} (${fmt(low[1], 2)}).`);
@@ -375,15 +401,18 @@
       const name = f.properties.NAME_2 || ''; const fill = fills[name] || '#E2E8F0';
       pathsOf(f.geometry).forEach(d => shapes += `<path d="${d}" fill="${fill}" stroke="#64748B" stroke-width="2" fill-rule="evenodd"/>`);
       const cp = []; coordsFlat(f.geometry.coordinates, cp); const cx = avg(cp.map(x => x[0])), cy = avg(cp.map(x => x[1])); const q = project([cx, cy]);
-      labels += `<text x="${q[0]}" y="${q[1]}" text-anchor="middle" font-family="Arial" font-size="18" font-weight="700" fill="#334155">${xml(name)}</text>`;
+      const regionKey=name==='Kota Pekalongan'?'Kota Pekalongan':(name==='Pekalongan'?'Kab. Pekalongan':'Kab. Batang');const rs=data.byRegion[regionKey]||{units:0,coverage:0};
+      labels += `<text x="${q[0]}" y="${q[1]}" text-anchor="middle" font-family="Arial" fill="#334155"><tspan x="${q[0]}" font-size="18" font-weight="700">${xml(name)}</tspan><tspan x="${q[0]}" dy="21" font-size="13" font-weight="600">${fmt(rs.units)} unit · ${fmtPct(rs.coverage)} dimonitor</tspan></text>`;
     });
+    const groups={};
+    data.units.forEach(u=>{const key=n(u.lat).toFixed(5)+'|'+n(u.lng).toFixed(5);if(!groups[key])groups[key]={lat:n(u.lat),lng:n(u.lng),count:0,monitored:0,visits:0,critical:false,jenis:u.jenis};const g=groups[key];g.count++;if(data.visited.has(u.id))g.monitored++;g.visits+=data.visitsByUnit[u.id]||0;if(data.latest.get(u.id)&&data.latest.get(u.id).hasil==='kritis')g.critical=true;});
     let markers = '';
-    data.units.forEach(u => {
-      const q = project([n(u.lng), n(u.lat)]), c = data.visited.has(u.id) ? '#16A34A' : (u.jenis === 'KDMP' ? '#DC2626' : '#2563EB');
-      const vc = data.visitsByUnit[u.id] || 0, critical = data.latest.get(u.id) && data.latest.get(u.id).hasil === 'kritis';
-      if (vc) markers += `<circle cx="${q[0]}" cy="${q[1]}" r="${5 + Math.min(vc, 5) * 1.8}" fill="none" stroke="#16A34A" stroke-width="1.5" opacity=".42"/>`;
-      if (critical) markers += `<circle cx="${q[0]}" cy="${q[1]}" r="11" fill="none" stroke="#B91C1C" stroke-width="3"/>`;
-      markers += `<circle cx="${q[0]}" cy="${q[1]}" r="5" fill="${c}" stroke="#FFFFFF" stroke-width="2"/>`;
+    Object.values(groups).forEach(g => {
+      const q=project([g.lng,g.lat]),allMon=g.monitored===g.count,c=allMon?'#16A34A':(g.monitored?'#D97706':(g.jenis==='KDMP'?'#DC2626':'#2563EB'));const r=5+Math.min(g.count-1,5)*1.1;
+      if(g.visits)markers+=`<circle cx="${q[0]}" cy="${q[1]}" r="${r+Math.min(g.visits,5)*1.7}" fill="none" stroke="#16A34A" stroke-width="1.5" opacity=".42"/>`;
+      if(g.critical)markers+=`<circle cx="${q[0]}" cy="${q[1]}" r="${r+6}" fill="none" stroke="#B91C1C" stroke-width="3"/>`;
+      markers+=`<circle cx="${q[0]}" cy="${q[1]}" r="${r}" fill="${c}" stroke="#FFFFFF" stroke-width="2"/>`;
+      if(g.count>1)markers+=`<text x="${q[0]}" y="${q[1]+3}" text-anchor="middle" font-family="Arial" font-size="9" font-weight="700" fill="#FFFFFF">${g.count}</text>`;
     });
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><rect width="100%" height="100%" rx="24" fill="#F8FAFC"/>${shapes}${labels}${markers}</svg>`;
   }
@@ -423,6 +452,22 @@
       addShape(slide, pptx, pptx.ShapeType.roundRect, x + 2.08, yy + .1, bw, Math.max(.11, rh - .22), { fill: { color }, line: { transparency: 100 }, rectRadius: .04 });
       addText(slide, fmt(val, suffix === ' skor' ? 2 : 0) + (suffix || ''), x + w - .56, yy, .55, rh - .03, { fontSize: 8.5, bold: true, color, align: 'right' });
     });
+  }
+  function chartOpts(extra){return Object.assign({showTitle:false,showLegend:true,legendPos:'b',legendFontFace:'Aptos',legendFontSize:8,showValue:false,showCategoryName:false,showPercent:false,showBorder:false,chartColors:[C.blue,C.green,C.amber,C.red,C.purple,C.cyan],catAxisLabelFontFace:'Aptos',catAxisLabelFontSize:8,valAxisLabelFontFace:'Aptos',valAxisLabelFontSize:8,valGridLine:{color:C.line,width:1},showCatName:false,showSerName:false},extra||{});}
+  function donutChart(slide,pptx,labels,values,x,y,w,h,colors){
+    slide.addChart(pptx.ChartType.doughnut,[{name:'Komposisi',labels,values:values.map(n)}],chartOpts({x,y,w,h,holeSize:62,showLegend:true,showPercent:true,showValue:false,dataLabelPosition:'bestFit',chartColors:colors||[C.green,C.amber,C.blue,C.red,C.purple]}));
+  }
+  function columnChart(slide,pptx,labels,values,x,y,w,h,color,suffix){
+    slide.addChart(pptx.ChartType.bar,[{name:'Jumlah',labels,values:values.map(n)}],chartOpts({x,y,w,h,barDir:'col',showLegend:false,showValue:true,dataLabelPosition:'outEnd',showCatName:false,showTitle:false,chartColors:[color||C.blue],valAxisMinVal:0,valAxisTitle:suffix||''}));
+  }
+  function stackedChart(slide,pptx,labels,a,b,x,y,w,h){
+    slide.addChart(pptx.ChartType.bar,[{name:'Sudah dimonitor',labels,values:a.map(n)},{name:'Belum dimonitor',labels,values:b.map(n)}],chartOpts({x,y,w,h,barDir:'col',grouping:'stacked',showLegend:true,showValue:true,dataLabelPosition:'ctr',chartColors:[C.green,C.amber],valAxisMinVal:0}));
+  }
+  function lineChart(slide,pptx,labels,values,x,y,w,h){
+    slide.addChart(pptx.ChartType.line,[{name:'Kunjungan',labels,values:values.map(n)}],chartOpts({x,y,w,h,showLegend:false,showValue:true,showCatName:false,chartColors:[C.blue],lineSize:3,showMarker:true,markerSize:6,valAxisMinVal:0}));
+  }
+  function radarChart(slide,pptx,labels,values,x,y,w,h){
+    slide.addChart(pptx.ChartType.radar,[{name:'Skor',labels,values:values.map(n)}],chartOpts({x,y,w,h,showLegend:false,showValue:true,chartColors:[C.red],valAxisMinVal:0,valAxisMaxVal:4,valAxisMajorUnit:1,showCatName:true}));
   }
   function narrative(slide, pptx, text, x, y, w, h, title) {
     panel(slide, pptx, x, y, w, h, title || 'Interpretasi Manajerial', 'F8FAFC');
@@ -473,28 +518,39 @@
       ['Halo merah: kritis', C.rose], ['Cincin: frekuensi', C.green]
     ];
     legend.forEach((x, i) => { addShape(s, pptx, pptx.ShapeType.ellipse, 9.53, 1.79 + i * .35, .16, .16, { fill: { color: x[1] }, line: { color: C.white, width: 1 } }); addText(s, x[0], 9.8, 1.75 + i * .35, 2.55, .22, { fontSize: 9, color: C.slate }); });
-    panel(s, pptx, 9.25, 3.58, 3.53, 3.27, 'Per Wilayah', 'FFFFFF');
-    const entries = REGION_ORDER.filter(r => !cfg.region || r === cfg.region).map(r => [r.replace('Kab. ', ''), d.byRegion[r].units]);
-    barList(s, pptx, entries, 9.52, 4.18, 2.95, 1.55, cfg.type === 'sppg' ? C.blue : C.red);
+    panel(s, pptx, 9.25, 3.58, 3.53, 3.27, 'Rasio & Intensitas per Wilayah', 'FFFFFF');
+    const regions=REGION_ORDER.filter(r=>(!cfg.region||r===cfg.region)&&d.byRegion[r].units);
+    regions.forEach((r,i)=>{const x=d.byRegion[r],yy=4.08+i*.82;addText(s,r.replace('Kab. ',''),9.52,yy,2.9,.2,{fontSize:9.5,bold:true,color:C.navy});addText(s,`${fmt(x.units)} unit (${fmtPct(x.share)} sebaran) · ${fmtPct(x.coverage)} dimonitor`,9.52,yy+.23,2.95,.18,{fontSize:7.8,color:C.slate});addText(s,`${fmt(x.visits)} kunjungan · ${fmt(x.visitRatio,1)}x/unit termonitor · ${fmt(x.priority)} prioritas`,9.52,yy+.43,2.95,.18,{fontSize:7.6,color:x.priority?C.amber:C.green});});
     const lowest = REGION_ORDER.map(r => [r, d.byRegion[r].coverage]).filter(x => d.byRegion[x[0]].units).sort((a, b) => a[1] - b[1])[0];
-    if (lowest) addText(s, `Cakupan terendah: ${lowest[0]} (${fmtPct(lowest[1])}).`, 9.52, 5.95, 2.88, .48, { fontSize: 9.5, bold: true, color: C.amber, valign: 'top' });
+    if (lowest&&regions.length<3) addText(s, `Cakupan terendah: ${lowest[0]} (${fmtPct(lowest[1])}).`, 9.52, 6.25, 2.88, .32, { fontSize: 8.8, bold: true, color: C.amber, valign: 'top' });
+  }
+
+  function geoAnalyticsSlide(pptx,d,page){
+    const s=pptx.addSlide();addHeader(s,pptx,'Analisis Geospasial & Rasio Wilayah','Konsentrasi unit, kesenjangan monitoring, dan intensitas kunjungan',page);
+    const active=REGION_ORDER.filter(r=>d.byRegion[r].units);const concentrated=active.map(r=>[r,d.byRegion[r].share]).sort((a,b)=>b[1]-a[1])[0];const best=active.map(r=>[r,d.byRegion[r].coverage]).sort((a,b)=>b[1]-a[1])[0];
+    kpi(s,pptx,.6,1.2,2.55,1.12,concentrated?fmtPct(concentrated[1]):'—','Konsentrasi terbesar',C.blue,concentrated?concentrated[0]:'Tidak ada data');
+    kpi(s,pptx,3.32,1.2,2.55,1.12,best?fmtPct(best[1]):'—','Cakupan terbaik',C.green,best?best[0]:'Tidak ada data');
+    kpi(s,pptx,6.04,1.2,2.55,1.12,fmt(d.avgVisits,1)+'x','Intensitas kunjungan',C.purple,'Per unit yang dimonitor');
+    kpi(s,pptx,8.76,1.2,2.55,1.12,fmtPct(pct(d.geoValid,d.total)),'Koordinat dapat dipetakan',C.cyan,`${fmt(d.geoValid)}/${fmt(d.total)} unit`);
+    panel(s,pptx,.6,2.65,6.55,4.02,'Sudah vs Belum Dimonitor per Wilayah');
+    const labels=active.map(r=>r.replace('Kab. ',''));stackedChart(s,pptx,labels,active.map(r=>d.byRegion[r].monitored),active.map(r=>d.byRegion[r].unmonitored),.88,3.18,5.95,2.92);
+    panel(s,pptx,7.4,2.65,5.37,4.02,'Kecamatan dengan Konsentrasi Unit Tertinggi','F8FAFC');
+    const top=d.topDistricts.slice(0,7).map(x=>[x.label,x.units]);barList(s,pptx,top,7.72,3.2,4.72,2.85,d.cfg.type==='sppg'?C.blue:C.red);
+    const low=d.topDistricts.filter(x=>x.units>=2).sort((a,b)=>a.coverage-b.coverage)[0];if(low)addText(s,`Kesenjangan kecamatan: ${low.label} memiliki ${fmt(low.units)} unit dengan cakupan ${fmtPct(low.coverage)}.`,7.74,6.15,4.6,.28,{fontSize:8.5,bold:true,color:C.amber});
   }
 
   function coverageSlide(pptx, d, page) {
-    const s = pptx.addSlide(); addHeader(s, pptx, 'Cakupan & Pemerataan Monitoring', 'Frekuensi kunjungan dan kesenjangan pengawasan', page);
+    const s = pptx.addSlide(); addHeader(s, pptx, 'Cakupan, Tren & Pemerataan Monitoring', 'Rasio unit, tren mingguan, dan frekuensi kunjungan', page);
     kpi(s, pptx, .6, 1.25, 2.55, 1.15, fmtPct(d.coverage), 'Cakupan unit', C.green, `${fmt(d.monitored)} dari ${fmt(d.total)} unit`);
     kpi(s, pptx, 3.32, 1.25, 2.55, 1.15, fmt(d.visits), 'Total kunjungan', C.blue, 'Dalam periode laporan');
     kpi(s, pptx, 6.04, 1.25, 2.55, 1.15, fmt(d.unmonitored), 'Belum dimonitor', C.amber, 'Target kunjungan');
     kpi(s, pptx, 8.76, 1.25, 2.55, 1.15, fmt(d.critical), 'Unit kritis', C.rose, 'Tindak lanjut segera');
-    panel(s, pptx, .6, 2.72, 6.1, 3.95, 'Distribusi Frekuensi Kunjungan');
-    barList(s, pptx, Object.entries(d.freq), .9, 3.32, 5.45, 2.82, C.blue);
-    panel(s, pptx, 6.95, 2.72, 5.82, 3.95, 'Cakupan per Wilayah', 'F8FAFC');
-    const regionEntries = REGION_ORDER.filter(r => d.byRegion[r].units).map(r => [r.replace('Kab. ', ''), d.byRegion[r].coverage]);
-    barList(s, pptx, regionEntries, 7.25, 3.35, 5.15, 1.85, C.green, 100, '%');
-    const msg = d.unmonitored
-      ? `${fmt(d.unmonitored)} unit belum pernah dimonitor pada periode ini. Pemerataan jadwal lebih penting daripada mengulang kunjungan pada unit yang sama.`
-      : 'Seluruh unit telah memiliki kunjungan pada periode ini. Fokus berikutnya adalah kualitas tindak lanjut.';
-    addText(s, msg, 7.28, 5.48, 5.0, .82, { fontSize: 10.5, color: C.slate, bold: true, valign: 'top' });
+    panel(s,pptx,.6,2.72,3.75,3.95,'Komposisi Cakupan');donutChart(s,pptx,['Sudah dimonitor','Belum dimonitor'],[d.monitored,d.unmonitored],.92,3.22,3.1,2.65,[C.green,C.amber]);
+    panel(s,pptx,4.58,2.72,4.35,3.95,'Tren Kunjungan per Minggu','F8FAFC');
+    if(d.visitTrend.length)lineChart(s,pptx,d.visitTrend.map(x=>x.label),d.visitTrend.map(x=>x.value),4.86,3.24,3.78,2.56);else addText(s,'Belum ada tren kunjungan pada periode ini.',4.9,3.75,3.7,.5,{fontSize:10,bold:true,color:C.amber,align:'center'});
+    panel(s,pptx,9.16,2.72,3.61,3.95,'Frekuensi per Unit');barList(s,pptx,Object.entries(d.freq),9.43,3.25,3.02,2.52,C.blue);
+    const msg=d.unmonitored?`${fmt(d.unmonitored)} unit belum dimonitor; rasio pengulangan pada unit termonitor ${fmt(d.avgVisits,1)}x.`:'Seluruh unit telah dimonitor; fokus pada kualitas tindak lanjut.';
+    addText(s,msg,9.43,5.98,3.0,.38,{fontSize:8.6,bold:true,color:d.unmonitored?C.amber:C.green,valign:'top'});
   }
 
   function sppgBeneficiarySlide(pptx, d, page) {
@@ -503,11 +559,11 @@
     kpi(s, pptx, 3.32, 1.23, 2.55, 1.08, fmt(d.benef.siswa), 'Penerima siswa', C.cyan, `${fmtPct(pct(d.benef.siswa, d.benefTotal))} dari isian`);
     kpi(s, pptx, 6.04, 1.23, 2.55, 1.08, fmt(d.schoolTotal), 'Sekolah dilayani', C.green, `${fmt(d.completeness.schools)}/${fmt(d.total)} SPPG mengisi`);
     kpi(s, pptx, 8.76, 1.23, 2.55, 1.08, fmt(d.capTotal), 'Kapasitas Master Unit', C.amber, 'Pembanding data master');
-    panel(s, pptx, .6, 2.62, 6.05, 3.98, 'Penerima menurut Kelompok');
-    barList(s, pptx, Object.keys(d.benef).map(k => [d.benefLabels[k], d.benef[k]]), .9, 3.18, 5.42, 2.9, C.blue);
-    panel(s, pptx, 6.9, 2.62, 5.87, 3.98, 'Jumlah Sekolah menurut Jenjang', 'F8FAFC');
-    barList(s, pptx, Object.keys(d.schools).map(k => [d.schoolLabels[k], d.schools[k]]), 7.2, 3.18, 5.2, 2.62, C.green);
-    addText(s, 'Catatan: data jenjang menunjukkan jumlah sekolah, bukan jumlah siswa per jenjang.', 7.2, 5.98, 5.08, .35, { fontSize: 9, italic: true, color: C.amber });
+    panel(s, pptx, .6, 2.62, 5.55, 3.98, 'Komposisi Penerima menurut Kelompok');
+    donutChart(s,pptx,Object.keys(d.benef).map(k=>d.benefLabels[k]),Object.values(d.benef),.9,3.12,4.95,2.82,[C.blue,C.purple,C.amber,C.green,C.cyan]);
+    panel(s, pptx, 6.4, 2.62, 6.37, 3.98, 'Jumlah Sekolah menurut Jenjang', 'F8FAFC');
+    columnChart(s,pptx,Object.keys(d.schools).map(k=>d.schoolLabels[k]),Object.values(d.schools),6.72,3.14,5.7,2.72,C.green,'Sekolah');
+    addText(s, 'Catatan: data jenjang menunjukkan jumlah sekolah, bukan jumlah siswa per jenjang.', 6.75, 5.98, 5.5, .35, { fontSize: 9, italic: true, color: C.amber });
   }
 
   function sppgOpsSlide(pptx, d, page) {
@@ -549,8 +605,8 @@
     kpi(s, pptx, 3.32, 1.25, 2.55, 1.1, fmt(d.naker.avgDays, 1), 'Hari kerja/minggu', C.blue, 'Rata-rata respons');
     kpi(s, pptx, 6.04, 1.25, 2.55, 1.1, fmt(d.naker.avgHours, 1), 'Jam kerja/hari', C.cyan, 'Rata-rata respons');
     kpi(s, pptx, 8.76, 1.25, 2.55, 1.1, fmt(d.naker.avgNewWage), 'Rata-rata upah', C.green, 'Rp/bulan');
-    panel(s, pptx, .6, 2.72, 5.95, 3.9, 'Posisi Responden');
-    barList(s, pptx, topEntries(d.naker.positions, 6), .9, 3.3, 5.3, 2.62, C.purple);
+    panel(s, pptx, .6, 2.72, 5.95, 3.9, 'Komposisi Posisi Responden');
+    const pos=topEntries(d.naker.positions,6);donutChart(s,pptx,pos.map(x=>x[0]),pos.map(x=>x[1]),.9,3.18,5.3,2.82,[C.purple,C.blue,C.green,C.amber,C.cyan,C.red]);
     panel(s, pptx, 6.8, 2.72, 5.97, 3.9, 'Kendala Pekerjaan Dominan', 'F8FAFC');
     barList(s, pptx, topEntries(d.naker.constraints, 6), 7.1, 3.3, 5.28, 2.62, C.amber);
     if (!d.naker.responses) addText(s, 'Belum ada respons Form Naker pada periode ini.', 7.1, 6.05, 5.15, .3, { fontSize: 10, bold: true, color: C.amber });
@@ -562,8 +618,8 @@
     kpi(s, pptx, 3.32, 1.24, 2.55, 1.12, fmt(sum(Object.values(d.finance.supplierSpend)), 1), 'Belanja pemasok', C.green, 'Rp juta — data terisi');
     kpi(s, pptx, 6.04, 1.24, 2.55, 1.12, fmt(d.finance.originSpend['Dalam kota'], 1), 'Belanja dalam kota', C.cyan, 'Rp juta');
     kpi(s, pptx, 8.76, 1.24, 2.55, 1.12, fmt(d.finance.filled), 'SPPG berdata keuangan', C.amber, `${fmtPct(pct(d.finance.filled,d.total))} cakupan`);
-    panel(s, pptx, .6, 2.72, 6.0, 3.92, 'Pengeluaran Bahan Baku per Kelompok Supplier');
-    barList(s, pptx, Object.entries(d.finance.supplierSpend), .9, 3.3, 5.35, 2.7, C.green, null, ' jt');
+    panel(s, pptx, .6, 2.72, 6.0, 3.92, 'Komposisi Belanja per Kelompok Supplier');
+    donutChart(s,pptx,Object.keys(d.finance.supplierSpend),Object.values(d.finance.supplierSpend),.92,3.18,5.35,2.82,[C.green,C.blue,C.amber,C.red,C.purple,C.cyan]);
     panel(s, pptx, 6.84, 2.72, 5.93, 3.92, 'Kendala Dominan', 'F8FAFC');
     const obs=topEntries(d.finance.obstacles,6);
     if(obs.length)barList(s,pptx,obs,7.14,3.3,5.28,2.55,C.amber);
@@ -651,9 +707,10 @@
     kpi(s, pptx, 3.6, 1.25, 2.75, 1.15, fmt(d.compliance.yes), 'Jawaban patuh (Ya)', C.green, `${fmt(d.compliance.total)} jawaban terisi`);
     kpi(s, pptx, 6.55, 1.25, 2.75, 1.15, fmtPct(pct(d.compliance.yes, d.compliance.total)), 'Tingkat kepatuhan', C.cyan, 'Dari jawaban tersedia');
     kpi(s, pptx, 9.5, 1.25, 2.75, 1.15, fmt(d.unmonitored), 'Belum dimonitor', C.amber, 'Target kunjungan');
-    panel(s, pptx, .65, 2.72, 12.1, 3.95, 'Perbandingan Dimensi');
+    panel(s,pptx,.65,2.72,5.5,3.95,'Radar Keseimbangan Dimensi');
+    panel(s,pptx,6.4,2.72,6.35,3.95,'Peringkat Skor Dimensi','F8FAFC');
     const entries = Object.entries(d.dims).sort((a, b) => b[1] - a[1]);
-    if (entries.length) barList(s, pptx, entries, 1.0, 3.3, 11.3, 2.86, C.red, 4, ' skor');
+    if(entries.length){radarChart(s,pptx,entries.map(x=>x[0]),entries.map(x=>x[1]),.92,3.15,4.95,2.9);barList(s,pptx,entries,6.73,3.28,5.65,2.78,C.red,4,' skor');}
     else addText(s, 'Belum tersedia skor dimensi KDMP pada periode ini.', 1.0, 3.55, 10.8, .5, { fontSize: 14, bold: true, color: C.amber, align: 'center' });
   }
 
@@ -666,6 +723,7 @@
     let p = 2;
     executiveSlide(pptx, d, cfg, p++, editedNarrative);
     mapSlide(pptx, d, cfg, geo, p++);
+    if(cfg.mode==='lengkap')geoAnalyticsSlide(pptx,d,p++);
     coverageSlide(pptx, d, p++);
     if (d.kind === 'sppg') {
       sppgBeneficiarySlide(pptx, d, p++);
