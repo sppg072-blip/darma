@@ -957,6 +957,12 @@ textarea.fc {
   }
 }
 
+/* ============ PENCARIAN UNIT MONITORING ============ */
+.unit-picker{position:relative}.unit-search-main{position:relative}.unit-search-main>i{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text3);pointer-events:none}.unit-search-input{padding-left:34px!important;padding-right:36px!important;border:2px solid var(--brand)!important;font-weight:700}.unit-search-clear{position:absolute;right:7px;top:50%;transform:translateY(-50%);width:25px;height:25px;border:none;background:var(--bg3);color:var(--text3);border-radius:7px;cursor:pointer;font-weight:900}.unit-search-clear:hover{background:var(--brand-bg);color:var(--brand)}
+.unit-filter-row{display:grid;grid-template-columns:1fr 1.45fr;gap:6px;margin-top:6px}.unit-filter-row select{font-size:10px;padding:7px 8px}.unit-search-meta{font-size:9px;color:var(--text3);font-weight:700;margin-top:5px;min-height:14px}
+.unit-results{display:none;position:relative;width:100%;margin-top:7px;z-index:2;background:var(--bg2);border:1px solid var(--border);border-radius:13px;box-shadow:0 8px 22px rgba(15,23,42,.14);max-height:310px;overflow-y:auto;padding:6px}.unit-results.show{display:block}.unit-result{display:grid;grid-template-columns:34px 1fr auto;gap:9px;align-items:center;padding:9px;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:var(--tr)}.unit-result:hover,.unit-result.active{background:var(--brand-bg);border-color:rgba(200,16,46,.22)}.unit-result-badge{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;color:#fff;font-size:12px;font-weight:900}.unit-result-badge.sppg{background:linear-gradient(135deg,#1d4ed8,#60a5fa)}.unit-result-badge.kdmp{background:linear-gradient(135deg,#b91c1c,#f87171)}.unit-result-name{font-size:10.5px;font-weight:900;color:var(--text);line-height:1.25}.unit-result-sub{font-size:8.8px;color:var(--text3);line-height:1.35;margin-top:3px}.unit-result-state{text-align:right;font-size:8px;font-weight:800;color:var(--text3);white-space:nowrap}.unit-result-state.mon{color:var(--ok)}.unit-result-empty{padding:22px 12px;text-align:center;color:var(--text3);font-size:10px;line-height:1.5}
+@media(max-width:600px){.unit-results{position:relative;left:auto;right:auto;top:auto;max-height:45vh;z-index:2}.unit-filter-row{grid-template-columns:1fr 1fr}}
+
 /* ============ LAPORAN MANAJEMEN / POWERPOINT ============ */
 .rpt-hero{background:linear-gradient(135deg,#0b1f3a 0%,#15345b 62%,#c8102e 150%);border-radius:16px;padding:18px;color:#fff;margin-bottom:14px;position:relative;overflow:hidden;box-shadow:0 10px 28px rgba(11,31,58,.2)}
 .rpt-hero::after{content:'';position:absolute;width:150px;height:150px;border:25px solid rgba(255,255,255,.07);border-radius:50%;right:-55px;top:-60px}
@@ -1169,8 +1175,21 @@ textarea.fc {
     <div class="rekam-top-row" style="display:grid;grid-template-columns:2fr 1fr 1.5fr;gap:12px;margin-bottom:12px">
       <div class="fg" style="margin-bottom:0">
         <label class="fl">Unit Dimonitor <span class="rq">*</span></label>
-        <select id="rUnit" class="fc" onchange="onUnitPick()"></select>
-        <div class="fhint" id="unitInfo">Pilih unit SPPG atau KDMP yang dikunjungi.</div>
+        <div class="unit-picker" id="monitoringUnitPicker" onclick="event.stopPropagation()">
+          <div class="unit-search-main">
+            <i class="fas fa-search"></i>
+            <input type="search" id="rUnitSearch" class="fc unit-search-input" autocomplete="off" placeholder="Cari nama, ID, desa, kecamatan..." onfocus="searchMonitoringUnits()" oninput="searchMonitoringUnits()" onkeydown="monitoringUnitSearchKey(event)"/>
+            <button type="button" class="unit-search-clear" onclick="clearMonitoringUnitSearch(event)" title="Hapus pencarian">×</button>
+          </div>
+          <div class="unit-filter-row">
+            <select id="rUnitJenis" class="fc" onchange="searchMonitoringUnits()"><option value="">Semua Jenis</option><option value="SPPG">🍳 SPPG</option><option value="KDMP">🏪 KDMP</option></select>
+            <select id="rUnitKab" class="fc" onchange="searchMonitoringUnits()"><option value="">Semua Wilayah</option><option>Kota Pekalongan</option><option>Kab. Pekalongan</option><option>Kab. Batang</option></select>
+          </div>
+          <div class="unit-search-meta" id="rUnitSearchMeta">Ketik nama, ID SPPG, desa, atau kecamatan.</div>
+          <div class="unit-results" id="rUnitResults"></div>
+        </div>
+        <select id="rUnit" class="fc" onchange="onUnitPick()" style="display:none"></select>
+        <div class="fhint" id="unitInfo">Cari lalu pilih unit SPPG atau KDMP yang dikunjungi.</div>
       </div>
       <div class="fg" style="margin-bottom:0">
         <label class="fl">Tanggal Kunjungan <span class="rq">*</span></label>
@@ -3166,10 +3185,61 @@ function deletePhotoMS(id) {
 /* ============================================================
    MONITORING (REKAM)
 ============================================================ */
+let monitoringUnitResultIndex=-1;
+function monitoringSearchNorm(v){return String(v==null?'':v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();}
+function closeMonitoringUnitResults(){const r=document.getElementById('rUnitResults');if(r)r.classList.remove('show');monitoringUnitResultIndex=-1;}
+function monitoringUnitMatches(){
+  const q=monitoringSearchNorm(getVal('rUnitSearch')),tokens=q.split(' ').filter(Boolean);
+  const jenis=getVal('rUnitJenis'),kab=getVal('rUnitKab');
+  return DB.units.filter(u=>{
+    if(jenis&&u.jenis!==jenis)return false;if(kab&&u.kab!==kab)return false;
+    const hay=monitoringSearchNorm([u.nama,u.ref,u.desa,u.kec,u.kab,u.alamat,u.pic,u.telp].filter(Boolean).join(' '));
+    return !tokens.length||tokens.every(t=>hay.includes(t));
+  }).map(u=>{
+    const nama=monitoringSearchNorm(u.nama),ref=monitoringSearchNorm(u.ref),area=monitoringSearchNorm([u.desa,u.kec,u.kab].join(' '));
+    let score=0;if(q){if(ref===q)score+=1000;if(ref.startsWith(q))score+=500;if(nama===q)score+=450;if(nama.startsWith(q))score+=300;if(nama.includes(q))score+=180;if(area.includes(q))score+=100;}
+    const visits=monsOf(u.id).length;if(!q&&visits===0)score+=50;
+    return {u,score,visits};
+  }).sort((a,b)=>b.score-a.score||a.visits-b.visits||a.u.nama.localeCompare(b.u.nama));
+}
+function searchMonitoringUnits(){
+  const box=document.getElementById('rUnitResults'),meta=document.getElementById('rUnitSearchMeta');if(!box)return;
+  const all=monitoringUnitMatches(),shown=all.slice(0,60);monitoringUnitResultIndex=-1;
+  if(!shown.length){box.innerHTML='<div class="unit-result-empty"><i class="fas fa-search" style="font-size:18px;margin-bottom:7px"></i><br>Tidak ada unit yang cocok.<br>Coba nama, ID, desa, atau kecamatan lain.</div>';}
+  else box.innerHTML=shown.map(x=>{const u=x.u,mon=x.visits>0;return `<div class="unit-result" data-unit-id="${esc(u.id)}" onclick="chooseMonitoringUnit(this.dataset.unitId)"><div class="unit-result-badge ${u.jenis.toLowerCase()}">${u.jenis==='SPPG'?'S':'K'}</div><div><div class="unit-result-name">${esc(u.nama)}</div><div class="unit-result-sub"><b>${esc(u.ref||'Tanpa ID')}</b> · ${esc(u.desa||'-')}, ${esc(u.kec||'-')} · ${esc(u.kab||'-')}</div></div><div class="unit-result-state ${mon?'mon':''}">${mon?'✓ '+x.visits+'x':'○ Belum'}<br>monitoring</div></div>`;}).join('');
+  if(meta)meta.textContent=`${all.length} unit ditemukan${all.length>60?' · 60 teratas ditampilkan':''}`;
+  box.classList.add('show');
+}
+function chooseMonitoringUnit(id){
+  const u=unitById(id);if(!u)return;
+  const sel=document.getElementById('rUnit');if(![...sel.options].some(o=>o.value===id))refreshUnitSelect();
+  sel.value=id;document.getElementById('rUnitSearch').value=u.nama;closeMonitoringUnitResults();onUnitPick();
+}
+function clearMonitoringUnitSearch(e){
+  if(e){e.preventDefault();e.stopPropagation();}
+  setVal('rUnitSearch','');setVal('rUnit','');
+  const info=document.getElementById('unitInfo');if(info)info.innerHTML='Cari lalu pilih unit SPPG atau KDMP yang dikunjungi.';
+  renderRekamForm(null);searchMonitoringUnits();document.getElementById('rUnitSearch').focus();
+}
+function syncMonitoringUnitSearch(u){
+  const inp=document.getElementById('rUnitSearch'),meta=document.getElementById('rUnitSearchMeta');if(!inp)return;
+  inp.value=u?u.nama:'';
+  if(meta)meta.textContent=u?`Terpilih: ${u.ref||u.id} · ${u.desa||'-'}, ${u.kec||'-'} · ${u.kab||'-'}`:'Ketik nama, ID SPPG, desa, atau kecamatan.';
+}
+function monitoringUnitSearchKey(e){
+  const box=document.getElementById('rUnitResults');if(!box)return;
+  if(e.key==='Escape'){closeMonitoringUnitResults();return;}
+  const items=[...box.querySelectorAll('.unit-result')];if(!items.length)return;
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+    e.preventDefault();monitoringUnitResultIndex=e.key==='ArrowDown'?Math.min(items.length-1,monitoringUnitResultIndex+1):Math.max(0,monitoringUnitResultIndex-1);
+    items.forEach((x,i)=>x.classList.toggle('active',i===monitoringUnitResultIndex));items[monitoringUnitResultIndex].scrollIntoView({block:'nearest'});
+  }else if(e.key==='Enter'&&monitoringUnitResultIndex>=0){e.preventDefault();items[monitoringUnitResultIndex].click();}
+}
 function initRekamForm(){
   const today=new Date().toISOString().slice(0,10);
   document.getElementById('rTgl').value=today;
   initMS();
+  document.addEventListener('click',closeMonitoringUnitResults);
   renderRekamForm(null);
 }
 function refreshUnitSelect(){
@@ -3181,7 +3251,7 @@ function refreshUnitSelect(){
     return `<optgroup label="${label}">${opts}</optgroup>`;
   }).join('');
   sel.innerHTML='<option value="">— Pilih Unit yang Dimonitor —</option>'+groups;
-  if(cur&&[...sel.options].some(o=>o.value===cur))sel.value=cur;
+  if(cur&&[...sel.options].some(o=>o.value===cur)){sel.value=cur;syncMonitoringUnitSearch(unitById(cur));}
   const hsel=document.getElementById('fHUnit');
   const hcur=hsel.value;
   hsel.innerHTML='<option value="">Semua Unit</option>';
@@ -3192,7 +3262,8 @@ function refreshUnitSelect(){
 function onUnitPick(){
   const u=unitById(getVal('rUnit'));
   const info=document.getElementById('unitInfo');
-  if(!u){info.innerHTML='Pilih unit SPPG atau KDMP yang dikunjungi.';renderRekamForm(null);return;}
+  syncMonitoringUnitSearch(u);
+  if(!u){info.innerHTML='Cari lalu pilih unit SPPG atau KDMP yang dikunjungi.';renderRekamForm(null);return;}
   info.innerHTML=`📍 ${esc(u.alamat)}, ${esc(u.kec)}, ${esc(u.kab)} · status: <b>${statusUnitLabel(u.status)}</b> · hasil terakhir: <b>${HASIL_META[unitHasil(u)].label}</b>`;
   editMonId=null;
   currentRekamForm=null;
@@ -3247,8 +3318,10 @@ function resetRekamForm(){
   document.getElementById('rTgl').value=new Date().toISOString().slice(0,10);
   setMSVal('rPetugas', CU?CU.nama:'');
   setVal('rTemuan','');
-  setVal('rRekom','');
-  document.getElementById('unitInfo').innerHTML='Pilih unit SPPG atau KDMP yang dikunjungi.';
+  setVal('rRekom','');setVal('rUnitSearch','');
+  const meta=document.getElementById('rUnitSearchMeta');if(meta)meta.textContent='Ketik nama, ID SPPG, desa, atau kecamatan.';
+  closeMonitoringUnitResults();
+  document.getElementById('unitInfo').innerHTML='Cari lalu pilih unit SPPG atau KDMP yang dikunjungi.';
   renderRekamForm(null);
 }
 function addMonitorFor(id){
@@ -3334,6 +3407,7 @@ function openEditMon(id){
   editMonId=id;
   currentRekamForm=(m.formType==='NAKER')?'NAKER':'SPPG';
   document.getElementById('rUnit').value=m.unitId;
+  syncMonitoringUnitSearch(u);
   setVal('rTgl',m.tgl);
   setMSVal('rPetugas',m.petugas||'');
   setVal('rTemuan',m.temuan||'');setVal('rRekom',m.rekom||'');
@@ -4131,5 +4205,5 @@ function cetakMonDocx(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2986cd1de6d145b',t:'MTc4NjQ2MzczMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2988b8a29c0e416',t:'MTc4NjQ2NDk4OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
