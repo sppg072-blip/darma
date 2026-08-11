@@ -155,10 +155,19 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidde
 #cntBadge.visible{display:flex;}
 #cntBadge b{color:var(--brand);}
 
-/* marker styling */
-.mk{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;border:2.5px solid #fff;position:relative;transition:transform .2s;}
-.mk i{font-size:13px;line-height:1;}
+/* marker styling — ukurannya adaptif mengikuti tingkat zoom peta */
+.mk{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;border:2.5px solid #fff;position:relative;transform-origin:50% 100%;transition:transform .22s ease,filter .22s ease;will-change:transform;}
+.mk i{font-size:13px;line-height:1;transition:opacity .18s ease;}
 .mk::before{content:'';position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);border:6px solid transparent;border-top-color:#fff;width:0;height:0;}
+/* Jauh: titik warna sederhana; Menengah: lingkaran ikon; Dekat: bubble lengkap. */
+#map.marker-zoom-far .mk{transform:translateY(6px) scale(.46);filter:drop-shadow(0 1px 2px rgba(15,23,42,.45));}
+#map.marker-zoom-far .mk i{opacity:0;}
+#map.marker-zoom-far .mk::before,#map.marker-zoom-far .mk.kdmp::after{display:none;}
+#map.marker-zoom-mid .mk{transform:translateY(6px) scale(.70);filter:drop-shadow(0 1px 2px rgba(15,23,42,.38));}
+#map.marker-zoom-mid .mk i{font-size:11px;}
+#map.marker-zoom-mid .mk::before{display:none;}
+#map.marker-zoom-near .mk{transform:scale(.88);filter:drop-shadow(0 2px 3px rgba(15,23,42,.34));}
+.leaflet-marker-icon:hover .mk{filter:brightness(1.08) drop-shadow(0 3px 5px rgba(15,23,42,.42));}
 .mk.sppg{background:linear-gradient(135deg,#1E3A8A,#3B82F6);}
 .mk.sppg::before{border-top-color:#3B82F6;}
 .mk.kdmp{background:linear-gradient(135deg,#991B1B,#EF4444);}
@@ -1591,7 +1600,7 @@ const FORM_SPPG={key:'SPPG',title:'DAFTAR PERTANYAAN UNTUK SPPG',purpose:'Menget
   ]},
   {title:'Bagian 5. Dokumentasi Kegiatan & Lampiran',fields:[
     {id:'sp_link_lampiran',label:'1. Link / Tautan Lampiran Berkas (Google Drive, Dokumen, Laporan, dsb.)',type:'url'},
-    {id:'sp_foto_kegiatan',label:'2. Dokumentasi Foto Kegiatan / Distribusi MBG (lewat HP / Kamera)',type:'photo'}
+    {id:'sp_foto_kegiatan',label:'2. Dokumentasi Foto/Gambar Kegiatan / Distribusi MBG',type:'photo'}
   ]}
 ]};
 /* ---- Naker: Form Tenaga Kerja (sheet "Naker" - 3 bagian, 10 butir) ---- */
@@ -1685,15 +1694,20 @@ function formFieldHtml(f,data){
       <input type="hidden" id="${id}" value="${esc(val)}" />
       <div class="photo-controls" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <label class="btn bp bsm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px">
-          <i class="fas fa-camera"></i> Ambil Foto / Upload lewat HP
-          <input type="file" accept="image/*" capture="environment" style="display:none" onchange="capturePhotoMS('${id}', event)" />
+          <i class="fas fa-camera"></i> Ambil Foto
+          <input type="file" accept="image/*" capture="environment" style="display:none" onchange="capturePhotoMS('${id}', event, 'camera')" />
+        </label>
+        <label class="btn bs bsm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+          <i class="fas fa-image"></i> Upload Gambar
+          <input type="file" accept="image/*" style="display:none" onchange="capturePhotoMS('${id}', event, 'upload')" />
         </label>
         <button type="button" class="btn bx bsm" id="pdel_${id}" onclick="deletePhotoMS('${id}')" style="display:${val?'inline-flex':'none'}">
-          <i class="fas fa-trash"></i> Hapus Foto
+          <i class="fas fa-trash"></i> Hapus Gambar
         </button>
       </div>
+      <div class="fhint" style="margin-top:6px">Format gambar JPG, PNG, atau WebP · maksimal 10 MB · otomatis dikompresi sebelum disimpan.</div>
       <div class="photo-preview" id="prev_${id}" style="margin-top:8px;display:${val?'block':'none'}">
-        ${val ? `<img src="${val}" style="max-height:160px;max-width:100%;border-radius:10px;border:2px solid var(--border);box-shadow:var(--sh)"/>` : ''}
+        ${val ? `<img src="${val}" alt="Dokumentasi kegiatan" style="max-height:220px;max-width:100%;border-radius:10px;border:2px solid var(--border);box-shadow:var(--sh);object-fit:contain"/>` : ''}
       </div>
     </div>`;
   }
@@ -2089,6 +2103,8 @@ function initMap(){
   
   boundariesLayer = L.layerGroup().addTo(map);
   loadBoundaries();
+  syncMarkerZoomMode();
+  map.on('zoomend',syncMarkerZoomMode);
 
   map.on('click',function(e){
     const mu=document.getElementById('mUnit');
@@ -2100,6 +2116,13 @@ function initMap(){
     }
   });
   [150,600,1200].forEach(t=>setTimeout(()=>map.invalidateSize(),t));
+}
+function syncMarkerZoomMode(){
+  if(!map)return;
+  const z=map.getZoom();
+  const el=map.getContainer();
+  el.classList.remove('marker-zoom-far','marker-zoom-mid','marker-zoom-near');
+  el.classList.add(z<=10?'marker-zoom-far':(z<=13?'marker-zoom-mid':'marker-zoom-near'));
 }
 function toggleLayer(){
   if(layerMode==='street'){map.removeLayer(layerStreet);layerSat.addTo(map);layerMode='sat';document.getElementById('layerLbl').textContent='Street';}
@@ -3009,37 +3032,52 @@ async function syncPetugasFromSheet() {
   toast('✅ Data nama petugas dimuat (' + OFFICER_LIST.length + ' terdaftar)');
 }
 
-function capturePhotoMS(id, e) {
-  const file = e.target.files && e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(evt) {
-    const img = new Image();
-    img.onload = function() {
-      const canvas = document.createElement('canvas');
-      const maxDim = 800;
-      let w = img.width, h = img.height;
-      if (w > maxDim || h > maxDim) {
-        if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
-        else { w = Math.round((w * maxDim) / h); h = maxDim; }
+function capturePhotoMS(id, e, source) {
+  const picker=e&&e.target;
+  const file=picker&&picker.files&&picker.files[0];
+  if(!file)return;
+  if(!/^image\//i.test(file.type||'')){
+    toast('File harus berupa gambar JPG, PNG, atau WebP','e');
+    picker.value='';return;
+  }
+  if(file.size>10*1024*1024){
+    toast('Ukuran gambar maksimal 10 MB','e');
+    picker.value='';return;
+  }
+  const reader=new FileReader();
+  reader.onerror=()=>{toast('Gagal membaca file gambar','e');picker.value='';};
+  reader.onload=function(evt){
+    const img=new Image();
+    img.onerror=()=>{toast('Gambar tidak dapat diproses','e');picker.value='';};
+    img.onload=function(){
+      try{
+        const canvas=document.createElement('canvas');
+        const maxDim=800;
+        let w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;
+        if(w>maxDim||h>maxDim){
+          if(w>h){h=Math.round((h*maxDim)/w);w=maxDim;}
+          else{w=Math.round((w*maxDim)/h);h=maxDim;}
+        }
+        canvas.width=w;canvas.height=h;
+        const ctx=canvas.getContext('2d');
+        if(!ctx)throw new Error('Canvas tidak tersedia');
+        ctx.drawImage(img,0,0,w,h);
+        const dataUrl=canvas.toDataURL('image/jpeg',0.7);
+        const inp=document.getElementById(id);if(inp)inp.value=dataUrl;
+        const prev=document.getElementById('prev_'+id);
+        if(prev){
+          prev.innerHTML=`<img src="${dataUrl}" alt="Dokumentasi kegiatan" style="max-height:220px;max-width:100%;border-radius:10px;border:2px solid var(--border);box-shadow:var(--sh);object-fit:contain"/>`;
+          prev.style.display='block';
+        }
+        const del=document.getElementById('pdel_'+id);if(del)del.style.display='inline-flex';
+        toast(source==='camera'?'📷 Foto berhasil diambil dan disiapkan':'🖼️ Gambar berhasil di-upload dan disiapkan');
+      }catch(err){
+        console.error('Image processing error:',err);
+        toast('Gagal memproses gambar','e');
       }
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, w, h);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-      const inp = document.getElementById(id);
-      if (inp) inp.value = dataUrl;
-      const prev = document.getElementById('prev_' + id);
-      if (prev) {
-        prev.innerHTML = `<img src="${dataUrl}" style="max-height:160px;max-width:100%;border-radius:10px;border:2px solid var(--border);box-shadow:var(--sh)"/>`;
-        prev.style.display = 'block';
-      }
-      const del = document.getElementById('pdel_' + id);
-      if (del) del.style.display = 'inline-flex';
-      toast('📸 Foto berhasil diambil dan disimpan');
+      picker.value='';
     };
-    img.src = evt.target.result;
+    img.src=evt.target.result;
   };
   reader.readAsDataURL(file);
 }
@@ -3143,11 +3181,20 @@ function resetRekamForm(){
   renderRekamForm(null);
 }
 function addMonitorFor(id){
+  const u=unitById(id);if(!u)return;
+  if(map)map.closePopup();
+  const sidebar=document.getElementById('sidebar');
+  sidebar.classList.add('visible');
   goTab('rekam');refreshUnitSelect();
   editMonId=null;
-  document.getElementById('rUnit').value=id;onUnitPick();
+  document.getElementById('rUnit').value=id;
+  onUnitPick();
   if(CU)setMSVal('rPetugas',CU.nama);
-  toast('📋 Kuesioner siap — selesaikan isian sesuai jenis unit!');
+  setTimeout(()=>{
+    const tab=document.getElementById('tab-rekam');
+    sidebar.scrollTo({top:Math.max(0,(tab?tab.offsetTop:0)-8),behavior:'smooth'});
+  },80);
+  toast(`📋 Form monitoring ${u.jenis} dibuka — silakan lengkapi kuesioner.`);
 }
 
 /* ============================================================
@@ -3709,16 +3756,25 @@ function generateFormPdf(jenis,filled,rec){
     });
     if(filled&&rec&&rec.hasil){y=formTitle(doc,'Status Monitoring',y,PH);doc.autoTable({startY:y,body:[[{content:'Status: '+(HASIL_META[rec.hasil]?HASIL_META[rec.hasil].label:rec.hasil),styles:{fontStyle:'bold',fontSize:10,halign:'center',textColor:[200,16,46]}}]],theme:'grid'});y=doc.lastAutoTable.finalY+6;}
     const fotoData = fields.sp_foto_kegiatan || fields.sp205_foto;
-    if (filled && fotoData && String(fotoData).startsWith('data:image')) {
-      if (y > PH - 80) { doc.addPage(); y = 20; }
-      y = formTitle(doc, 'Dokumentasi Foto Kegiatan', y, PH);
-      try {
-        doc.addImage(fotoData, 'JPEG', 14, y, 90, 65);
-        y += 70;
-      } catch(e) {
+    if(filled&&fotoData&&String(fotoData).startsWith('data:image')){
+      try{
+        const prop=doc.getImageProperties(fotoData);
+        const pageW=doc.internal.pageSize.getWidth();
+        const maxW=pageW-28,maxH=105;
+        let imgW=maxW,imgH=imgW*(prop.height/prop.width);
+        if(imgH>maxH){imgH=maxH;imgW=imgH*(prop.width/prop.height);}
+        if(y>PH-imgH-18){doc.addPage();y=20;}
+        y=formTitle(doc,'Dokumentasi Foto/Gambar Kegiatan',y,PH);
+        const imgX=(pageW-imgW)/2;
+        doc.addImage(fotoData,'JPEG',imgX,y,imgW,imgH,undefined,'FAST');
+        y+=imgH+6;
+      }catch(e){
+        console.error('PDF image error:',e);
+        if(y>PH-28){doc.addPage();y=20;}
+        y=formTitle(doc,'Dokumentasi Foto/Gambar Kegiatan',y,PH);
         doc.setFontSize(8);
-        doc.text('(Foto dokumentasi tersimpan di sistem)', 14, y + 5);
-        y += 10;
+        doc.text('(Gambar dokumentasi tersimpan di sistem tetapi gagal ditanam ke PDF)',14,y+5);
+        y+=10;
       }
     }
   }
@@ -3794,6 +3850,11 @@ function generateFormXlsx(jenis,filled,rec){
   XLSX.utils.book_append_sheet(wb,ws,'Form '+formType);
   XLSX.writeFile(wb,'DARMA_Form_'+formType+'_'+(filled?'Terisi':'Kosong')+'.xlsx');
   toast('File Excel form '+formType+' terunduh');
+}
+function cetakRekam(mode){
+  if(!currentRekamJenis){toast('Pilih unit dulu untuk mencetak form','e');return;}
+  const rec=recFormData(currentRekamJenis,mode);if(!rec)return;
+  generateFormPdf(currentRekamJenis,mode==='isi',rec);
 }
 function cetakRekamDocx(mode){
   if(!currentRekamJenis){toast('Pilih unit dulu','e');return;}
@@ -3999,5 +4060,5 @@ function cetakMonDocx(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
 function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a295ec968bb24abd',t:'MTc4NjQzNzUwNw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a297e8583a13910a',t:'MTc4NjQ1ODMwNQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
