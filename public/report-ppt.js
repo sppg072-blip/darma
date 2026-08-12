@@ -63,7 +63,7 @@
     return out;
   }
   function arrayVals(v) { return Array.isArray(v) ? v : (v ? [v] : []); }
-  function fieldsOf(m) { return (m && m.form && m.form.fields) || {}; }
+  function fieldsOf(m) { if(m&&monFormType(m)==='SPPG'&&typeof global.normalizeSppgForm==='function')return global.normalizeSppgForm(m.form||{}).fields;return (m && m.form && m.form.fields) || {}; }
   function monFormType(m) { return safe(m && m.formType || (m && m.jenis === 'KDMP' ? 'KDMP' : 'SPPG')).toUpperCase(); }
   function formHasData(m) { const f = fieldsOf(m); return Object.keys(f).some(k => f[k] !== '' && f[k] != null); }
   function monthName(iso) {
@@ -178,7 +178,7 @@
       supplierSpend: { KDKMP: 0, 'BUMDes/Koperasi': 0, 'Agen/Pasar': 0, Distributor: 0, Produsen: 0, UMKM: 0 },
       originSpend: { 'Dalam kota': 0, 'Luar kota': 0 }, operational: {}, obstacles: {}, filled: 0
     };
-    const dist = { '< 15 menit': 0, '< 30 menit': 0, '> 30 menit': 0, 'Tidak diisi': 0 };
+    const dist = { '< 15 menit': 0, '< 30 menit': 0, '> 30 menit': 0, 'Tidak diisi': 0 },distMinutes=[];
     const bpjs = { '0-20%': 0, '21-50%': 0, '51-80%': 0, '81-100%': 0, 'Tidak diisi': 0 };
     const safety = { noExternal: 0, noSample: 0, digestive: 0, riskyWaste: 0, filled: 0 };
     const extraTexts = [];
@@ -193,11 +193,12 @@
       if (f.sp409 !== '' && f.sp409 != null) supplierCounts.push(n(f.sp409));
       const ss=f.sp410||{};
       finance.supplierSpend.KDKMP+=n(ss.kdkmp);finance.supplierSpend['BUMDes/Koperasi']+=n(ss.bumdes);finance.supplierSpend['Agen/Pasar']+=n(ss.agen);finance.supplierSpend.Distributor+=n(ss.distributor);finance.supplierSpend.Produsen+=n(ss.produsen);finance.supplierSpend.UMKM+=n(ss.umkm);
-      const os=f.sp411||{};Object.values(os).forEach(v=>{if(v&&typeof v==='object'){finance.originSpend['Dalam kota']+=n(v.dalam);finance.originSpend['Luar kota']+=n(v.luar);}});
+      const os=f.sp411||{};Object.entries(os).filter(([k])=>k!=='total').forEach(([,v])=>{if(v&&typeof v==='object'){finance.originSpend['Dalam kota']+=n(v.dalam);finance.originSpend['Luar kota']+=n(v.luar);}});
       const op=f.sp413||{};Object.entries(op).forEach(([k,v])=>finance.operational[k]=(finance.operational[k]||0)+n(v));
       arrayVals(f.sp414).forEach(x=>finance.obstacles[x]=(finance.obstacles[x]||0)+1);
       if(Object.keys(ss).length||Object.keys(os).length||Object.keys(op).length||arrayVals(f.sp414).length)finance.filled++;
       const dv = safe(f.sp204); if (!dv) dist['Tidak diisi']++; else if (dv.includes('> 30')) dist['> 30 menit']++; else if (dv.includes('30')) dist['< 30 menit']++; else dist['< 15 menit']++;
+      if(dv.includes('> 30')&&n(f.sp204_detail)>0)distMinutes.push(n(f.sp204_detail));
       const bv = safe(f.sp208) || 'Tidak diisi'; bpjs[bv] = (bpjs[bv] || 0) + 1;
       if (f.sp301 || f.sp308 || f.sp310 || f.sp311) safety.filled++;
       if (safe(f.sp301).toLowerCase() === 'tidak') safety.noExternal++;
@@ -236,6 +237,7 @@
     const spatial=geoInsight(a);if(spatial)parts.push(spatial);
     if (benefFilled) parts.push(`Dari ${fmt(benefFilled)} SPPG yang mengisi data penerima, tercatat ${fmt(benefTotal)} penerima/porsi per hari; kelompok siswa berjumlah ${fmt(benef.siswa)} (${fmtPct(pct(benef.siswa, benefTotal))}).`);
     if (schoolFilled) parts.push(`Jaringan layanan mencakup ${fmt(schoolTotal)} sekolah; jenjang terbanyak adalah ${topEntries(schools, 1).map(([k, v]) => schoolLabels[k] + ' (' + fmt(v) + ')')[0]}.`);
+    if(distMinutes.length)parts.push(`${fmt(dist['> 30 menit'])} SPPG melaporkan distribusi lebih dari 30 menit; dari detail yang terisi, rata-ratanya ${fmt(avg(distMinutes),1)} menit dan waktu terlama ${fmt(Math.max(...distMinutes))} menit.`);
     if (safety.digestive || safety.noSample || safety.riskyWaste) parts.push(`Terdapat sinyal risiko keamanan pangan: ${fmt(safety.digestive)} laporan gangguan pencernaan, ${fmt(safety.noSample)} unit tanpa uji sampel, dan ${fmt(safety.riskyWaste)} unit dengan pengelolaan limbah berisiko.`);
     const recs = [];
     if (a.unmonitored) recs.push(`Prioritaskan monitoring pada ${fmt(a.unmonitored)} SPPG yang belum dikunjungi, terutama unit berstatus aktif.`);
@@ -247,7 +249,7 @@
     if (!recs.length) recs.push('Pertahankan cakupan monitoring dan lakukan evaluasi berkala berbasis risiko.');
     return Object.assign(a, {
       kind: 'sppg', sppgForms, nakerForms, snapshots, benef, benefLabels, schools, schoolLabels,
-      benefTotal, schoolTotal, workers, cooks, days, supplierCounts, finance, dist, bpjs, safety, naker,
+      benefTotal, schoolTotal, workers, cooks, days, supplierCounts, finance, dist, distMinutes, bpjs, safety, naker,
       findings, capTotal, completeness, executive: parts.join(' '), recommendations: recs
     });
   }
@@ -570,14 +572,14 @@
     const s = pptx.addSlide(); addHeader(s, pptx, 'Operasional, Distribusi & Tenaga Kerja', 'Beban layanan, waktu tempuh, dan dukungan SDM', page);
     const porsiPerCook = sum(d.cooks) ? d.benefTotal / sum(d.cooks) : 0;
     kpi(s, pptx, .6, 1.23, 2.55, 1.12, fmt(avg(d.days), 1), 'Rata-rata hari salur', C.blue, 'Hari pada bulan lalu');
-    kpi(s, pptx, 3.32, 1.23, 2.55, 1.12, fmt(d.dist['> 30 menit']), 'Distribusi >30 menit', C.amber, 'Perlu evaluasi rute');
+    kpi(s, pptx, 3.32, 1.23, 2.55, 1.12, fmt(d.dist['> 30 menit']), 'Distribusi >30 menit', C.amber, d.distMinutes.length?`Rata-rata ${fmt(avg(d.distMinutes),1)} menit · maks ${fmt(Math.max(...d.distMinutes))}`:'Perlu evaluasi rute');
     kpi(s, pptx, 6.04, 1.23, 2.55, 1.12, fmt(sum(d.workers)), 'Pekerja terlapor', C.green, `${fmt(d.workers.length)} SPPG mengisi`);
     kpi(s, pptx, 8.76, 1.23, 2.55, 1.12, fmt(porsiPerCook), 'Porsi per juru masak', C.red, 'Indikator beban agregat');
     panel(s, pptx, .6, 2.7, 5.92, 3.9, 'Waktu Tempuh Distribusi');
     barList(s, pptx, Object.entries(d.dist), .9, 3.3, 5.28, 2.55, C.amber);
     panel(s, pptx, 6.77, 2.7, 6.0, 3.9, 'Cakupan BPJS Ketenagakerjaan', 'F8FAFC');
     barList(s, pptx, Object.entries(d.bpjs), 7.08, 3.3, 5.3, 2.55, C.green);
-    addText(s, d.dist['> 30 menit'] ? `Fokus: evaluasi rute, waktu pemorsian, dan armada pada ${fmt(d.dist['> 30 menit'])} unit.` : 'Tidak ada laporan distribusi lebih dari 30 menit pada data terisi.', 7.1, 5.95, 5.1, .38, { fontSize: 9.5, bold: true, color: d.dist['> 30 menit'] ? C.amber : C.green });
+    addText(s, d.dist['> 30 menit'] ? `Fokus: evaluasi rute, waktu pemorsian, dan armada pada ${fmt(d.dist['> 30 menit'])} unit.${d.distMinutes.length?' Waktu terlama '+fmt(Math.max(...d.distMinutes))+' menit.':''}` : 'Tidak ada laporan distribusi lebih dari 30 menit pada data terisi.', 7.1, 5.95, 5.1, .38, { fontSize: 9.5, bold: true, color: d.dist['> 30 menit'] ? C.amber : C.green });
   }
 
   function sppgSafetySlide(pptx, d, page) {
