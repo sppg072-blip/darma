@@ -618,11 +618,13 @@ textarea.fc{resize:vertical;min-height:56px;}
 .qchip:hover{border-color:var(--brand);}
 .qchip.on{background:linear-gradient(135deg,#C8102E,#EF4444);color:#fff;border-color:transparent;box-shadow:0 2px 6px rgba(200,16,46,.35);}
 [data-theme="dark"] .qchip.on{background:linear-gradient(135deg,#991B1B,#DC2626);}
-.qgrid{width:100%;border-collapse:collapse;margin-bottom:6px;font-size:10px;}
+.qgrid-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:9px;margin-bottom:6px}.qgrid{width:100%;border-collapse:collapse;font-size:10px;min-width:360px;}
 .qgrid th,.qgrid td{border:1px solid var(--border);padding:4px 6px;}
 .qgrid th{background:var(--bg3);font-size:8.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--text2);text-align:left;}
 .qgrid td.glab{font-weight:700;color:var(--text);font-size:10px;}
-.qgrid input.ginp{width:100%;border:none;background:transparent;font-size:10px;color:var(--text);outline:none;font-family:inherit;}
+.qgrid input.ginp{width:100%;min-width:72px;border:1px solid transparent;background:var(--bg2);font-size:10px;color:var(--text);outline:none;font-family:inherit;padding:5px 6px;border-radius:6px}.qgrid input.ginp:focus{border-color:#0f8b8d;box-shadow:0 0 0 2px rgba(15,139,141,.12)}.qgrid input.ginp[readonly]{background:var(--bg3);font-weight:900;color:#0f766e}
+.formal-sppg{border-left:4px solid #0f8b8d;padding-left:10px}.formal-sppg .qmeta{background:#f8fafc;border:1px solid #dbe4ee;color:#64748b}.formal-sppg .qmeta b{color:#1e3a8a}.formal-sppg .qbagian{background:#f8fafc;color:#1e3a8a;border-radius:10px;border-left:5px solid #0f8b8d;padding:10px 12px;text-transform:uppercase;font-size:11px;letter-spacing:.45px;box-shadow:0 2px 8px rgba(15,23,42,.05)}.formal-sppg .qfield{background:#fbfcfe;border:1px solid #edf1f5;border-radius:10px;padding:8px 9px;margin-bottom:8px}.formal-sppg .qfn{color:#334155;font-size:10.8px}.formal-sppg .qfn .qn{background:#1e3a8a;border-radius:4px}.formal-sppg .qchip.on{background:linear-gradient(135deg,#0f766e,#14b8a6);box-shadow:0 2px 6px rgba(15,118,110,.28)}.formal-sppg .qgrid th{background:#eef4f8;color:#1e3a8a;font-weight:900}.formal-sppg .qgrid td{background:#fff}.formal-sppg .qfield[data-field-id="sp204_detail"]{margin:-2px 0 10px 22px;border-left:4px solid #f59e0b;background:#fffbeb}.formal-sppg .qfield[data-field-id="sp204_detail"] .qfn{color:#92400e}.surveyor-analysis{border-left:4px solid #0f8b8d;background:#f8fafc;border-radius:10px;padding:11px 12px;margin-top:12px}.surveyor-analysis .sec-title{color:#1e3a8a;margin-top:0}
+@media(max-width:600px){.formal-sppg{padding-left:7px}.formal-sppg .qfield{padding:8px 7px}.formal-sppg .qgrid{min-width:470px}.formal-sppg .qchips{gap:7px}.formal-sppg .qchip{padding:7px 10px;min-height:34px}.formal-sppg input.fc,.formal-sppg select.fc,.formal-sppg textarea.fc{font-size:13px!important;min-height:42px}}
 
 /* ============ MULTI-SELECT DROPDOWN DENGAN CHECKBOX (TANPA NOMOR HP) ============ */
 .ms-wrap{position:relative;width:100%;}
@@ -1241,14 +1243,17 @@ textarea.fc {
       <label class="fl">Hasil Monitoring (otomatis)</label>
       <div id="hasilPreview" style="padding:9px 12px;border-radius:10px;font-size:12px;font-weight:800;border:2px solid var(--border)"></div>
     </div>
-    <div class="rekam-notes-row">
-      <div class="fg">
-        <label class="fl">Temuan Lapangan</label>
-        <textarea id="rTemuan" class="fc" placeholder="Contoh: Ketersediaan bahan baku dari KDMP terlambat, cold storage penuh, dsb..."></textarea>
-      </div>
-      <div class="fg">
-        <label class="fl">Rekomendasi / Tindak Lanjut</label>
-        <textarea id="rRekom" class="fc" placeholder="Contoh: KDMP menambah armada distribusi, SPPG melengkapi SLHS, dsb..."></textarea>
+    <div class="surveyor-analysis">
+      <div class="sec-title"><i class="fas fa-user-check"></i> Analisis Surveyor</div>
+      <div class="rekam-notes-row">
+        <div class="fg">
+          <label class="fl">Catatan / Analisis Surveyor atas hasil survei ini</label>
+          <textarea id="rTemuan" class="fc" placeholder="Tuliskan analisis, temuan, atau catatan penting surveyor"></textarea>
+        </div>
+        <div class="fg">
+          <label class="fl">Rekomendasi / Tindak Lanjut</label>
+          <textarea id="rRekom" class="fc" placeholder="Tuliskan rekomendasi dan tindak lanjut yang diperlukan"></textarea>
+        </div>
       </div>
     </div>
     <button class="btn bp bblk" onclick="saveMonitoring()"><i class="fas fa-save"></i> Simpan Hasil Monitoring</button>
@@ -1558,7 +1563,7 @@ const ASPEK_META = {baik:'✅ Baik',perlu:'⚠️ Perlu',tidak:'❌ Tidak Sesuai
    - KDMP  : Kuesioner Monev Juknis (skala 1-4) + Compliance Ya/Tidak
    - SPPG  : Form Survei Penyaluran MBG (adaptasi Excel)
 ============================================================ */
-let editMonId=null, currentRekamJenis=null, currentRekamForm=null, currentPreviewHasil=null;
+let editMonId=null, currentRekamJenis=null, currentRekamForm=null, currentPreviewHasil=null, currentSppgFormVersion='SPPG-2026-08';
 const SKALA_KDMP='Skala 1–4: (1) Sangat Tidak Baik · (2) Kurang Baik · (3) Baik · (4) Sangat Baik. Hasil = rata-rata seluruh butir.';
 const KATEGORI_KDMP=[
   {min:3.26,label:'Sangat Baik',hasil:'baik'},
@@ -1638,7 +1643,7 @@ const COMPLIANCE_KDMP=[
 ];
 
 /* ---- SPPG: Form Survei (sheet "SPPG" - 4 bagian, 33 butir) ---- */
-const FORM_SPPG={key:'SPPG',title:'DAFTAR PERTANYAAN UNTUK SPPG',purpose:'Mengetahui Perkembangan Operasional dalam Pengelolaan SPPG',dur:'45 menit',sections:[
+const FORM_SPPG_V1={key:'SPPG',version:'SPPG-V1',title:'DAFTAR PERTANYAAN UNTUK SPPG',purpose:'Mengetahui Perkembangan Operasional dalam Pengelolaan SPPG',dur:'45 menit',sections:[
   {title:'Bagian 1. Identitas dan Lokasi Responden',fields:[
     {id:'sp101',label:'Nama SPPG',type:'t'},
     {id:'sp102',label:'Provinsi',type:'c',opts:['Jawa Tengah']},
@@ -1696,6 +1701,42 @@ const FORM_SPPG={key:'SPPG',title:'DAFTAR PERTANYAAN UNTUK SPPG',purpose:'Menget
     {id:'sp_foto_kegiatan',label:'2. Dokumentasi Foto/Gambar Kegiatan / Distribusi MBG',type:'photo'}
   ]}
 ]};
+
+/* ---- SPPG V2: Form formal terbaru, tetap kompatibel dengan data V1 ---- */
+const SPPG_FORM_VERSION='SPPG-2026-08';
+const FORM_SPPG_V2=JSON.parse(JSON.stringify(FORM_SPPG_V1));
+FORM_SPPG_V2.version=SPPG_FORM_VERSION;
+FORM_SPPG_V2.title='FORM SURVEI MONITORING SPPG';
+FORM_SPPG_V2.purpose='Mengetahui kondisi operasional, keamanan pangan, pengelolaan, dan administrasi SPPG';
+function sppgV2Field(id){for(const sec of FORM_SPPG_V2.sections){const f=sec.fields.find(x=>x.id===id);if(f)return f;}return null;}
+function sppgV2Replace(sectionIndex,id,newField){const a=FORM_SPPG_V2.sections[sectionIndex].fields,i=a.findIndex(x=>x.id===id);if(i>=0)a.splice(i,1,newField);}
+function sppgV2InsertAfter(sectionIndex,id,newField){const a=FORM_SPPG_V2.sections[sectionIndex].fields,i=a.findIndex(x=>x.id===id);a.splice(i<0?a.length:i+1,0,newField);}
+FORM_SPPG_V2.sections[0].title='BAGIAN 1. IDENTITAS DAN LOKASI RESPONDEN';
+FORM_SPPG_V2.sections[1].title='BAGIAN 2. OPERASIONAL SPPG';
+FORM_SPPG_V2.sections[2].title='BAGIAN 3. KEAMANAN PANGAN DAN PENGELOLAAN SAMPAH';
+FORM_SPPG_V2.sections[3].title='BAGIAN 4. ADMINISTRASI KEUANGAN SPPG';
+FORM_SPPG_V2.sections[4].title='BAGIAN 5. DOKUMENTASI KEGIATAN DAN LAMPIRAN';
+Object.assign(sppgV2Field('sp202'),{label:'Jumlah sekolah yang menerima MBG pada akhir bulan lalu',unit:'sekolah'});
+Object.assign(sppgV2Field('sp207'),{label:'Jumlah hari kerja dasar pembayaran upah bulan lalu'});
+sppgV2InsertAfter(1,'sp204',{id:'sp204_detail',code:'204a',label:'Sebutkan waktu tempuh terlama',type:'n',unit:'menit',showIf:{field:'sp204',contains:'> 30'}});
+const s3=FORM_SPPG_V2.sections[2].fields,idx303=s3.findIndex(x=>x.id==='sp303');
+s3.splice(idx303,5,{id:'sp_waktu_proses',code:'303–307',label:'Waktu proses hari ini',type:'g',fields:[{id:'tahap1',label:'Tahap I',type:'time'},{id:'tahap2',label:'Tahap II',type:'time'}],rows:[{id:'sp303',label:'303. Mulai dimasak'},{id:'sp304',label:'304. Selesai dimasak'},{id:'sp305',label:'305. Mulai proses pemorsian'},{id:'sp306',label:'306. Selesai diporsikan'},{id:'sp307',label:'307. Dikirim ke penerima'}]});
+Object.assign(sppgV2Field('sp308'),{label:'Siapa yang melakukan uji sampel makanan hari ini sebelum dibagikan?'});
+Object.assign(sppgV2Field('sp310'),{label:'Apakah pernah ada kejadian menonjol gangguan pencernaan?',type:'yn'});delete sppgV2Field('sp310').opts;
+Object.assign(sppgV2Field('sp312'),{label:'Apakah ada kendala dalam penyiapan makanan dalam jumlah besar?'});
+sppgV2InsertAfter(2,'sp312',{id:'sp313',code:'313',label:'Jika ada, berapa frekuensi keterjadian kendala pada minggu lalu?',type:'n',unit:'kali'});
+sppgV2Replace(3,'sp405',{id:'sp405',code:'405',label:'Laporan keuangan yang disampaikan ke BGN (bisa lebih dari satu)',type:'m',opts:['Harian','Dua mingguan','Bulanan']});
+sppgV2Replace(3,'sp406',{id:'sp406',code:'406',label:'Aplikasi yang digunakan untuk membuat laporan keuangan',type:'m',opts:['Aplikasi Pelaporan Keuangan SPPG (berbasis Excel)','Aplikasi lainnya']});
+sppgV2InsertAfter(3,'sp406',{id:'sp406_lain',code:'406a',label:'Sebutkan aplikasi lainnya (jika ada)',type:'t'});
+const sp411=sppgV2Field('sp411');sp411.label='Pengeluaran bahan baku minggu lalu (berdasarkan kelompok bahan baku)';sp411.rows.push({id:'total',label:'Total',computed:true});
+const sp410=sppgV2Field('sp410');sp410.label='Pengeluaran bahan baku minggu lalu (berdasarkan kelompok supplier)';
+const sp413=sppgV2Field('sp413');sp413.label='Pengeluaran biaya operasional minggu lalu';
+const row413={tk:'Tenaga kerja/Relawan',bbm:'Bensin/Solar/BBM lain',lpg:'LPG/BBG/Gas Kota',util:'Utilitas: Listrik, Air Bersih, dll.',sewa:'Sewa kendaraan',lain:'Biaya Operasional Lainnya'};sp413.rows.forEach(r=>{if(row413[r.id])r.label=row413[r.id];});
+sppgV2Replace(3,'sp414',{id:'sp414',code:'414',label:'Kendala terkait proses penyiapan dan distribusi MBG di SPPG (bisa lebih dari satu)',type:'m',opts:['Ketersediaan bahan baku','Harga bahan baku meningkat','Pembayaran ke supplier terhambat','Petty cash tidak mencukupi','Keterlambatan pencairan anggaran dari BGN','Lainnya']});
+sppgV2InsertAfter(3,'sp414',{id:'sp414_lain',code:'414a',label:'Lainnya, sebutkan',type:'t'});
+FORM_SPPG_V2.sections.forEach(sec=>sec.fields.forEach(f=>{if(!f.code){const m=f.id.match(/^sp(\d+)/);if(m)f.code=m[1];}}));
+const FORM_SPPG=FORM_SPPG_V2;
+
 /* ---- Naker: Form Tenaga Kerja (sheet "Naker" - 3 bagian, 10 butir) ---- */
 const FORM_NAKER={key:'NAKER',title:'DAFTAR PERTANYAAN UNTUK TENAGA KERJA',purpose:'Mengetahui Dampak MBG terhadap Tenaga Kerja',dur:'6 menit',sections:[
   {title:'Bagian 1. Lokasi dan Identitas Responden',fields:[
@@ -1731,9 +1772,21 @@ const FORM_NAKER={key:'NAKER',title:'DAFTAR PERTANYAAN UNTUK TENAGA KERJA',purpo
     {id:'nk310',label:'Dampak ekonomi SPPG bagi lingkungan/pelaku usaha sekitar',type:'ta'}
   ]}
 ]};
-const FORMS={SPPG:FORM_SPPG,NAKER:FORM_NAKER};
+const FORMS={SPPG:FORM_SPPG_V2,NAKER:FORM_NAKER};
+function getSppgFormDefinition(form){return form&&form.version===SPPG_FORM_VERSION?FORM_SPPG_V2:FORM_SPPG_V1;}
+function getActiveSppgFormDefinition(){return currentSppgFormVersion===SPPG_FORM_VERSION?FORM_SPPG_V2:FORM_SPPG_V1;}
+function normalizeSppgForm(form){
+  const src=form||{},out={version:src.version||'SPPG-V1',fields:JSON.parse(JSON.stringify(src.fields||{}))},f=out.fields;
+  if(!f.sp_waktu_proses){f.sp_waktu_proses={};['sp303','sp304','sp305','sp306','sp307'].forEach(k=>f.sp_waktu_proses[k]={tahap1:f[k]||'',tahap2:''});}
+  ['sp303','sp304','sp305','sp306','sp307'].forEach(k=>{if(!f[k]&&f.sp_waktu_proses[k])f[k]=f.sp_waktu_proses[k].tahap1||'';});
+  if(f.sp405&&!Array.isArray(f.sp405)&&typeof f.sp405==='object'){const map={harian:'Harian',duamingguan:'Dua mingguan',bulanan:'Bulanan'};f.sp405=Object.keys(map).filter(k=>String(f.sp405[k]||'').toLowerCase()==='ya').map(k=>map[k]);}
+  if(f.sp406&&!Array.isArray(f.sp406)&&typeof f.sp406==='object'){const a=[];if(String(f.sp406.apl||'').toLowerCase()==='ya')a.push('Aplikasi Pelaporan Keuangan SPPG (berbasis Excel)');if(String(f.sp406.lain||'').toLowerCase()==='ya')a.push('Aplikasi lainnya');f.sp406=a;}
+  if(f.sp411&&typeof f.sp411==='object'){const rows=['pokok','lauk','sayur','buah','minum','lain'];const total=f.sp411.total||(f.sp411.total={});total.dalam=rows.reduce((a,k)=>a+(parseFloat(f.sp411[k]&&f.sp411[k].dalam)||0),0);total.luar=rows.reduce((a,k)=>a+(parseFloat(f.sp411[k]&&f.sp411[k].luar)||0),0);}
+  return out;
+}
+window.normalizeSppgForm=normalizeSppgForm;
 const ALL_FIELD_LABEL={};
-[FORM_SPPG,FORM_NAKER].forEach(F=>F.sections.forEach(s=>s.fields.forEach(f=>ALL_FIELD_LABEL[f.id]=f.label)));
+[FORM_SPPG_V1,FORM_SPPG_V2,FORM_NAKER].forEach(F=>F.sections.forEach(s=>s.fields.forEach(f=>ALL_FIELD_LABEL[f.id]=f.label)));
 const SPPG_FIELD_LABEL=ALL_FIELD_LABEL;
 
 function showPreview(html,color,hasil){const el=document.getElementById('hasilPreview');el.innerHTML=html;el.style.color='#fff';el.style.background=color;el.style.borderColor=color;document.getElementById('hasilPreviewWrap').style.display='block';currentPreviewHasil=hasil;}
@@ -1822,8 +1875,8 @@ function gridFieldHtml(f,data){
   const d=(data&&data[f.id])||{};
   if(f.fields&&f.fields.length){
     let h='<table class="qgrid"><thead><tr><th>Item</th>'+f.fields.map(c=>`<th>${esc(c.label)}${c.unit?`<br><span style="font-weight:400;text-transform:none">(${esc(c.unit)})</span>`:''}</th>`).join('')+'</tr></thead><tbody>';
-    f.rows.forEach(r=>{h+='<tr><td class="glab">'+esc(r.label)+'</td>'+f.fields.map(c=>{const val=(d[r.id]&&d[r.id][c.id])||'';return '<td><input class="ginp" type="number" step="any" id="ff_'+f.id+'__'+r.id+'__'+c.id+'" value="'+esc(val)+'" oninput="onFormInput()"/></td>';}).join('')+'</tr>';});
-    return h+'</tbody></table>';
+    f.rows.forEach(r=>{h+='<tr><td class="glab">'+esc(r.label)+'</td>'+f.fields.map(c=>{const val=(d[r.id]&&d[r.id][c.id])||'',tp=c.type==='time'?'time':'number',ro=r.computed?' readonly tabindex="-1"':'',evt=r.computed?'':' oninput="onFormInput();'+(f.id==='sp411'?'updateSppgComputedTotals()':'')+'"';return '<td><input class="ginp" type="'+tp+'" '+(tp==='number'?'step="any" ':'')+'id="ff_'+f.id+'__'+r.id+'__'+c.id+'" value="'+esc(val)+'"'+ro+evt+'/></td>';}).join('')+'</tr>';});
+    return '<div class="qgrid-wrap">'+h+'</tbody></table></div>';
   }
   const yn=f.rows.some(r=>r.type==='yn');
   let h='<table class="qgrid"><thead><tr><th>Item</th>'+(yn?'<th>Jawaban</th>':'<th>'+esc(f.unit||'Nilai')+'</th>')+'</tr></thead><tbody>';
@@ -1832,17 +1885,24 @@ function gridFieldHtml(f,data){
     if(r.type==='yn'){h+='<tr><td class="glab">'+esc(r.label)+'</td><td><div class="qchips" data-fid="'+f.id+'__'+r.id+'" data-multi="0"><button type="button" class="qchip '+(val==='Ya'?'on':'')+'" data-opt="Ya" onclick="pickChip(this,false)">Ya</button><button type="button" class="qchip '+(val==='Tidak'?'on':'')+'" data-opt="Tidak" onclick="pickChip(this,false)">Tidak</button></div></td></tr>';}
     else{h+='<tr><td class="glab">'+esc(r.label)+'</td><td><input class="ginp" type="number" step="any" id="ff_'+f.id+'__'+r.id+'" value="'+esc(val||'')+'" oninput="onFormInput()"/></td></tr>';}
   });
-  return h+'</tbody></table>';
+  return '<div class="qgrid-wrap">'+h+'</tbody></table></div>';
 }
 function renderGenericForm(formDef,data){
   let h=`<div class="qmeta"><b>${esc(formDef.title)}</b><br>Tujuan: ${esc(formDef.purpose)}. Estimasi ${esc(formDef.dur||'')}. Pilih/centang opsi, isi isian, atau pilih dropdown sesuai jawaban responden.</div>`;
   formDef.sections.forEach(sec=>{
     h+=`<div class="qbagian">${esc(sec.title)}</div>`;
-    sec.fields.forEach((f,fi)=>{h+=`<div class="qfield"><div class="qfn"><span class="qn">${fi+1}</span>${esc(f.label)}</div>${formFieldHtml(f,data)}</div>`;});
+    sec.fields.forEach((f,fi)=>{const m=f.id&&f.id.match(/^(?:sp|nk)(\d+)/),no=f.code||(m?m[1]:String(fi+1)),dep=f.showIf&&data?data[f.showIf.field]:'',visible=!f.showIf||String(dep||'').includes(f.showIf.contains);h+=`<div class="qfield" data-field-id="${esc(f.id)}"${f.showIf?` data-show-field="${esc(f.showIf.field)}" data-show-contains="${esc(f.showIf.contains)}"`:''} style="${visible?'':'display:none'}"><div class="qfn"><span class="qn">${esc(no)}</span>${esc(f.label)}</div>${formFieldHtml(f,data)}</div>`;});
   });
   return h;
 }
-function pickChip(btn,multi){if(!multi){btn.parentNode.querySelectorAll('.qchip').forEach(b=>b.classList.remove('on'));}btn.classList.toggle('on');onFormInput();}
+function pickChip(btn,multi){if(!multi){btn.parentNode.querySelectorAll('.qchip').forEach(b=>b.classList.remove('on'));}btn.classList.toggle('on');onFormInput();updateSppgConditionalFields();}
+function updateSppgConditionalFields(){
+  document.querySelectorAll('#rekamForm .qfield[data-show-field]').forEach(row=>{const fid=row.dataset.showField,need=row.dataset.showContains||'',on=document.querySelector(`#rekamForm .qchips[data-fid="${fid}"] .qchip.on`),val=on?on.dataset.opt:'',show=String(val||'').includes(need);row.style.display=show?'':'none';if(!show){const inp=row.querySelector('input,textarea,select');if(inp)inp.value='';}});
+}
+function updateSppgComputedTotals(){
+  const rows=['pokok','lauk','sayur','buah','minum','lain'];
+  ['dalam','luar'].forEach(col=>{const total=rows.reduce((a,r)=>a+(parseFloat(getVal('ff_sp411__'+r+'__'+col))||0),0),el=document.getElementById('ff_sp411__total__'+col);if(el)el.value=total||'';});
+}
 function onFormInput(){if(currentRekamJenis!=='KDMP')previewHasilManual();}
 function renderRekamForm(jenis,rec){
   currentRekamJenis=jenis;
@@ -1928,13 +1988,14 @@ function renderRekamForm(jenis,rec){
     return;
   }
   if(!currentRekamForm)currentRekamForm=(rec&&rec.formType==='NAKER')?'NAKER':'SPPG';
-  if(tag)tag.textContent=' · '+(currentRekamForm==='NAKER'?'Tenaga Kerja (Naker)':'SPPG');
-  const formDef=FORMS[currentRekamForm]||FORM_SPPG;
+  if(currentRekamForm==='SPPG')currentSppgFormVersion=(rec&&rec.form&&rec.form.version===SPPG_FORM_VERSION)?SPPG_FORM_VERSION:(rec?'SPPG-V1':SPPG_FORM_VERSION);
+  if(tag)tag.textContent=' · '+(currentRekamForm==='NAKER'?'Tenaga Kerja (Naker)':('SPPG · '+(currentSppgFormVersion===SPPG_FORM_VERSION?'Form Formal V2':'Form Lama V1')));
+  const formDef=currentRekamForm==='SPPG'?getActiveSppgFormDefinition():(FORMS[currentRekamForm]||FORM_NAKER);
   let h=`<div class="qformtabs"><div class="jopt ${currentRekamForm==='SPPG'?'on-sppg':''}" onclick="switchRekamForm('SPPG')"><div class="jt">🍳 Form SPPG</div></div><div class="jopt ${currentRekamForm==='NAKER'?'on-sppg':''}" onclick="switchRekamForm('NAKER')"><div class="jt">👷 Form Naker</div></div></div>`;
   const data=(rec&&rec.formType===currentRekamForm)?(f.fields):undefined;
   h+=renderGenericForm(formDef,data);
   h+=`<div class="qbagian">Penilaian Akhir Monitoring</div><div class="qfield"><div class="qfn"><span class="qn">★</span>Hasil / Status Monitoring <span class="rq">*</span></div><select id="rHasilManual" class="fc" onchange="previewHasilManual()"><option value="baik">🟢 Baik</option><option value="perbaikan">🟡 Perlu Perbaikan</option><option value="kritis">🔴 Kritis</option></select><div class="qunit-hint">Disarankan otomatis dari indikator — dapat disesuaikan petugas.</div></div>`;
-  root.innerHTML='<div class="qkues">'+h+'</div>';
+  root.innerHTML='<div class="qkues '+(currentRekamForm==='SPPG'&&currentSppgFormVersion===SPPG_FORM_VERSION?'formal-sppg':'')+'">'+h+'</div>';
   const u = unitById(getVal('rUnit'));
   if (currentRekamForm === 'SPPG' && u) {
     if (!rec || !f.fields || !f.fields.sp101) {
@@ -1962,6 +2023,7 @@ function renderRekamForm(jenis,rec){
     }
   }
   renderAllMS();
+  if(currentRekamForm==='SPPG'&&currentSppgFormVersion===SPPG_FORM_VERSION){updateSppgComputedTotals();updateSppgConditionalFields();}
   setVal('rHasilManual',(rec&&rec.formType===currentRekamForm&&rec.hasil)?rec.hasil:hasilSaran());
   previewHasilManual();
 }
@@ -1971,7 +2033,7 @@ function pickYN(btn){btn.parentNode.querySelectorAll('.qyn-btn').forEach(b=>b.cl
 function hasilSaran(){
   if(currentRekamForm==='NAKER')return 'baik';
   if(currentRekamForm==='SPPG'){
-    const d=collectGeneric(FORM_SPPG).fields;
+    const d=collectGeneric(getActiveSppgFormDefinition()).fields;
     if(String(d.sp310||'').indexOf('Ya')===0)return 'kritis';
     if((d.sp301||'')==='Tidak')return 'perbaikan';
     if(/Dibuang ke sungai|Dibuang ke TPA/.test(d.sp311||''))return 'perbaikan';
@@ -2331,7 +2393,7 @@ function buildPopup(u){
     </div>
   </div>`;
 }
-function flyToUnit(id){const u=unitById(id);if(!u)return;map.flyTo([u.lat,u.lng],15,{duration:1.1});selectUnit(id);}
+function flyToUnit(id){const u=unitById(id);if(!u)return;map.flyTo([u.lat,u.lng],18,{duration:1.2});selectUnit(id);}
 function navigateUnit(){const u=unitById(dtCurrent);if(!u)return;navToUnit(u.id);}
 function navToUnit(id){const u=unitById(id);if(!u){toast('Unit tidak ditemukan','e');return;}const dest=encodeURIComponent(u.lat+','+u.lng);window.open('https://www.google.com/maps/dir/?api=1&destination='+dest,'_blank','noopener');toast('🗺️ Membuka rute Google Maps ke '+u.nama);}
 
@@ -3278,7 +3340,7 @@ function onUnitPick(){
   if(!u){info.innerHTML='Cari lalu pilih unit SPPG atau KDMP yang dikunjungi.';renderRekamForm(null);return;}
   info.innerHTML=`📍 ${esc(u.alamat)}, ${esc(u.kec)}, ${esc(u.kab)} · status: <b>${statusUnitLabel(u.status)}</b> · hasil terakhir: <b>${HASIL_META[unitHasil(u)].label}</b>`;
   editMonId=null;
-  currentRekamForm=null;
+  currentRekamForm=null;currentSppgFormVersion=SPPG_FORM_VERSION;
   setVal('rTemuan','');setVal('rRekom','');
   renderRekamForm(u.jenis);
   flyToUnit(u.id);
@@ -3308,7 +3370,9 @@ function saveMonitoring(){
     if(!form.terjawab){toast('Isi minimal satu butir penilaian KDMP','e');return;}
     hasil=form.hasil;
   }else{
-    form=collectGeneric(FORMS[currentRekamForm]||FORM_SPPG);
+    const formDef=currentRekamForm==='SPPG'?getActiveSppgFormDefinition():(FORMS[currentRekamForm]||FORM_NAKER);
+    form=collectGeneric(formDef);
+    if(currentRekamForm==='SPPG')form.version=currentSppgFormVersion;
     hasil=getVal('rHasilManual')||'baik';
   }
   const base={unitId,tgl,petugas,driver,jenis:u.jenis,formType:(u.jenis==='KDMP'?'KDMP':(currentRekamForm||'SPPG')),form,hasil,temuan,rekom};
@@ -3781,12 +3845,13 @@ function buildSppgPrintHtml(m,blank){
     ['Responden (Nama)',fields.resp||'........................','Jabatan',fields.jab||'........................'],
     ['Alamat SPPG',u?u.alamat:'........................................................................................................................','','']
   ]);
-  FORM_SPPG.forEach(sec=>{
-    h+=`<div class="secap">${escP(sec.judul)}</div>`;
+  const formDef=getSppgFormDefinition(f);
+  formDef.sections.forEach(sec=>{
+    h+=`<div class="secap">${escP(sec.title)}</div>`;
     h+='<table><thead><tr><th class="kol-no">No</th><th style="text-align:left;width:46%">Pertanyaan</th><th style="text-align:left">Jawaban</th></tr></thead><tbody>';
     sec.fields.forEach((fld,fi)=>{
-      const ans=blank?'':(fields[fld.id]||'');
-      h+=`<tr><td class="kol-no">${fi+1}</td><td>${escP(fld.label)}${fld.unit?` <span class="small">(${escP(fld.unit)})</span>`:''}</td><td>${ans?escP(ans):'<span class="ket">.........................................................................</span>'}</td></tr>`;
+      const ans=blank?'':fieldVal(fld,fields[fld.id],true),no=fld.code||((fld.id&&fld.id.match(/^sp(\d+)/)||[])[1])||fi+1;
+      h+=`<tr><td class="kol-no">${escP(no)}</td><td>${escP(fld.label)}${fld.unit?` <span class="small">(${escP(fld.unit)})</span>`:''}</td><td>${ans?escP(ans):'<span class="ket">.........................................................................</span>'}</td></tr>`;
     });
     h+='</tbody></table>';
   });
@@ -3801,11 +3866,13 @@ function recFormData(jenis,mode){
   const u=unitById(getVal('rUnit'));
   const formType=(jenis==='KDMP'?'KDMP':(currentRekamForm||'SPPG'));
   if(mode==='isi'){
-    const form=jenis==='KDMP'?collectKDMP():collectGeneric(FORMS[formType]||FORM_SPPG);
+    const def=formType==='SPPG'?getActiveSppgFormDefinition():(FORMS[formType]||FORM_NAKER);
+    const form=jenis==='KDMP'?collectKDMP():collectGeneric(def);
+    if(formType==='SPPG')form.version=currentSppgFormVersion;
     if(jenis==='KDMP'&&form.terjawab===0){toast('Isi minimal satu butir sebelum mencetak','e');return null;}
     return {unitId:u?u.id:'',tgl:getVal('rTgl'),petugas:getVal('rPetugas'),jenis:jenis,formType:formType,form:form,hasil:(jenis==='KDMP')?form.hasil:(getVal('rHasilManual')||'baik')};
   }
-  return {unitId:u?u.id:'',tgl:'',petugas:'',jenis:jenis,formType:formType,form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}};
+  return {unitId:u?u.id:'',tgl:'',petugas:'',jenis:jenis,formType:formType,form:jenis==='KDMP'?{sections:[],compliance:[]}:{version:SPPG_FORM_VERSION,fields:{}}};
 }
 function fieldVal(fld,v,filled){if(!filled)return '';if(fld&&fld.type==='photo')return v?'✓ Foto Terlampir (Lihat Gambar di Bawah)':'-';if(fld&&(fld.type==='url'||fld.type==='link'))return v?('Link: '+v):'-';if(Array.isArray(v))return v.join('; ');if(v&&typeof v==='object')return '';return v||'';}
 function hasFormData(form){const f=(form&&form.fields)||{};return Object.keys(f).some(k=>{const v=f[k];if(v==null||v==='')return false;if(Array.isArray(v))return v.length>0;if(typeof v==='object')return Object.values(v).some(x=>x&&(typeof x!=='object'||Object.values(x).some(z=>z)));return true;});}
@@ -3829,10 +3896,10 @@ function generateFormPdf(jenis,filled,rec){
   const doc=new jsPDF({orientation:'p',unit:'mm',format:'a4'});
   const PH=doc.internal.pageSize.getHeight();
   const u=(rec&&rec.unitId)?unitById(rec.unitId):null;
-  const tgl=(rec&&rec.tgl)||'',petugas=(rec&&rec.petugas)||'',f=(rec&&rec.form)||{};
+  const tgl=(rec&&rec.tgl)||'',petugas=(rec&&rec.petugas)||'',f=(rec&&rec.form)||{},reportDef=formType==='SPPG'?getSppgFormDefinition(f):(FORMS[formType]||{});
   const pAll = [petugas, (rec&&rec.form&&rec.form.fields&&rec.form.fields.sp109)?'Wawancara: '+rec.form.fields.sp109:''].filter(Boolean).join(' | ');
-  let y=pdfHead(doc,isK?'KUESIONER MONEV KDMP/KKMP':(formType==='NAKER'?'DAFTAR PERTANYAAN UNTUK TENAGA KERJA':'DAFTAR PERTANYAAN UNTUK SPPG'),
-    isK?'Monev Koperasi Desa/Kelurahan Merah Putih (KDMP/KKMP) - Bangunan Permanen':((FORMS[formType]||{}).purpose||'')+(filled?'':' (FORM KOSONG)'));
+  let y=pdfHead(doc,isK?'KUESIONER MONEV KDMP/KKMP':(reportDef.title||(formType==='NAKER'?'DAFTAR PERTANYAAN UNTUK TENAGA KERJA':'FORM SURVEI MONITORING SPPG')),
+    isK?'Monev Koperasi Desa/Kelurahan Merah Putih (KDMP/KKMP) - Bangunan Permanen':(reportDef.purpose||'')+(filled?'':' (FORM KOSONG)'));
   const idRows=isK
     ? [
         ['Nama KDMP/KKMP',u?u.nama:'','Tanggal Survei',tgl?fmtD(tgl):''],
@@ -3897,13 +3964,13 @@ function generateFormPdf(jenis,filled,rec){
     y+=20;
     doc.text('( ' + (petugas || '..........................') + ' )', 30, y); doc.text('( ' + (f.resp_nama || '..........................') + ' )', 130, y);
   }else{
-    const formDef=FORMS[formType]||FORM_SPPG;const fields=f.fields||{};
+    const formDef=formType==='SPPG'?getSppgFormDefinition(f):(FORMS[formType]||FORM_NAKER);const fields=f.fields||{};
     formDef.sections.forEach(sec=>{
       y=formTitle(doc,sec.title,y,PH);
       const ng=sec.fields.filter(fld=>fld.type!=='g');
       if(ng.length){
         doc.autoTable({startY:y,head:[['No','Pertanyaan','Jawaban']],
-          body:ng.map((fld,i)=>[String(i+1),pdfSafe(fld.label)+(fld.unit?' ('+fld.unit+')':''),pdfSafe(fieldVal(fld,fields[fld.id],filled))]),
+          body:ng.map((fld,i)=>[String(fld.code||((fld.id&&fld.id.match(/^(?:sp|nk)(\d+)/)||[])[1])||i+1),pdfSafe(fld.label)+(fld.unit?' ('+fld.unit+')':''),pdfSafe(fieldVal(fld,fields[fld.id],filled))]),
           styles:{fontSize:7.5,cellPadding:1.5,lineWidth:0.1,lineColor:[180,180,180]},headStyles:TBL_HEAD,
           columnStyles:{0:{cellWidth:8,halign:'center'},1:{cellWidth:85}},
           didParseCell:d=>{if(d.section==='body'&&d.column.index===2&&d.cell.raw){d.cell.styles.fontStyle='bold';}}});
@@ -3911,6 +3978,7 @@ function generateFormPdf(jenis,filled,rec){
       }
       sec.fields.filter(fld=>fld.type==='g').forEach(fld=>{y=gridPdf(doc,fld,fields[fld.id],filled,y,PH);});
     });
+    if(filled&&rec&&(rec.temuan||rec.rekom)){y=formTitle(doc,'Analisis Surveyor',y,PH);doc.autoTable({startY:y,body:[['Catatan / Analisis Surveyor',pdfSafe(rec.temuan||'-')],['Rekomendasi / Tindak Lanjut',pdfSafe(rec.rekom||'-')]],theme:'grid',styles:{fontSize:8,cellPadding:1.8},columnStyles:{0:{cellWidth:52,fontStyle:'bold',fillColor:[240,249,250]}}});y=doc.lastAutoTable.finalY+5;}
     if(filled&&rec&&rec.hasil){y=formTitle(doc,'Status Monitoring',y,PH);doc.autoTable({startY:y,body:[[{content:'Status: '+(HASIL_META[rec.hasil]?HASIL_META[rec.hasil].label:rec.hasil),styles:{fontStyle:'bold',fontSize:10,halign:'center',textColor:[200,16,46]}}]],theme:'grid'});y=doc.lastAutoTable.finalY+6;}
     const fotoData = fields.sp_foto_kegiatan || fields.sp205_foto;
     if(filled&&fotoData&&String(fotoData).startsWith('data:image')){
@@ -3957,10 +4025,10 @@ function generateFormXlsx(jenis,filled,rec){
   if(!window.XLSX){toast('Library Excel belum termuat','e');return;}
   const formType=(rec&&rec.formType)||(jenis==='KDMP'?'KDMP':'SPPG');const isK=formType==='KDMP';
   const u=(rec&&rec.unitId)?unitById(rec.unitId):null;
-  const tgl=(rec&&rec.tgl)||'',petugas=(rec&&rec.petugas)||'',f=(rec&&rec.form)||{};
+  const tgl=(rec&&rec.tgl)||'',petugas=(rec&&rec.petugas)||'',f=(rec&&rec.form)||{},reportDef=formType==='SPPG'?getSppgFormDefinition(f):(FORMS[formType]||{});
   const aoa=[];
-  aoa.push([isK?'KUESIONER MONEV KDMP/KKMP':((FORMS[formType]||{}).title||'FORM')]);
-  aoa.push([(FORMS[formType]||{}).purpose||'']);
+  aoa.push([isK?'KUESIONER MONEV KDMP/KKMP':(reportDef.title||'FORM')]);
+  aoa.push([reportDef.purpose||'']);
   aoa.push([]);
   aoa.push(['Nama KDMP/KKMP',u?u.nama:'','Tanggal Survei',tgl?fmtD(tgl):'']);
   aoa.push(['Kabupaten/Kota',u?u.kab:'','Kecamatan',u?u.kec:'']);
@@ -3988,16 +4056,17 @@ function generateFormXlsx(jenis,filled,rec){
     aoa.push(['3,26-4,00','Sangat Baik'],['2,51-3,25','Baik'],['1,76-2,50','Kurang Baik'],['1,00-1,75','Sangat Kurang']);
     if(filled&&f.avg!=null)aoa.push(['HASIL','Skor '+f.avg+' - '+f.kategori]);
   }else{
-    const formDef=FORMS[formType]||FORM_SPPG;const fields=f.fields||{};
+    const formDef=formType==='SPPG'?getSppgFormDefinition(f):(FORMS[formType]||FORM_NAKER);const fields=f.fields||{};
     formDef.sections.forEach(sec=>{
       aoa.push([sec.title,'','']);
       aoa.push(['No','Pertanyaan','Jawaban']);
       sec.fields.forEach((fld,i)=>{
         if(fld.type==='g'){gridXls(aoa,fld,fields[fld.id],filled);}
-        else{aoa.push([i+1,fld.label+(fld.unit?' ('+fld.unit+')':''),fieldVal(fields[fld.id],filled)]);}
+        else{aoa.push([fld.code||((fld.id&&fld.id.match(/^(?:sp|nk)(\d+)/)||[])[1])||i+1,fld.label+(fld.unit?' ('+fld.unit+')':''),fieldVal(fld,fields[fld.id],filled)]);}
       });
       aoa.push([]);
     });
+    if(filled&&rec&&(rec.temuan||rec.rekom)){aoa.push(['ANALISIS SURVEYOR','','']);aoa.push(['Catatan / Analisis Surveyor',rec.temuan||'','']);aoa.push(['Rekomendasi / Tindak Lanjut',rec.rekom||'','']);aoa.push([]);}
     if(filled&&rec&&rec.hasil)aoa.push(['STATUS MONITORING',HASIL_META[rec.hasil]?HASIL_META[rec.hasil].label:rec.hasil,'']);
   }
   const ws=XLSX.utils.aoa_to_sheet(aoa);
@@ -4189,6 +4258,8 @@ async function generateFormDocx(jenis, filled, rec) {
       if (f.fields.sp_link_lampiran) children.push(new Paragraph({ text: 'Link Lampiran: ' + f.fields.sp_link_lampiran }));
       if (f.fields.sp_foto_kegiatan) children.push(new Paragraph({ text: 'Dokumentasi Foto: Terlampir di sistem (Gambar Foto Kegiatan)' }));
     }
+    if(rec.temuan){children.push(new Paragraph({children:[new TextRun({text:'ANALISIS SURVEYOR',bold:true})],spacing:{before:240,after:80}}));children.push(new Paragraph({text:rec.temuan}));}
+    if(rec.rekom){children.push(new Paragraph({children:[new TextRun({text:'Rekomendasi / Tindak Lanjut',bold:true})],spacing:{before:160,after:60}}));children.push(new Paragraph({text:rec.rekom}));}
   }
 
   const doc = new Document({
@@ -4208,14 +4279,14 @@ function unduhFormExcelRekam(){
   const formType=(currentRekamJenis==='KDMP'?'KDMP':(currentRekamForm||'SPPG'));
   let form,filled;
   if(currentRekamJenis==='KDMP'){form=collectKDMP();filled=form.terjawab>0;}
-  else{form=collectGeneric(FORMS[formType]||FORM_SPPG);filled=hasFormData(form);}
+  else{const def=formType==='SPPG'?getActiveSppgFormDefinition():(FORMS[formType]||FORM_NAKER);form=collectGeneric(def);if(formType==='SPPG')form.version=currentSppgFormVersion;filled=hasFormData(form);}
   const u=unitById(getVal('rUnit'));
   generateFormXlsx(currentRekamJenis,filled,{unitId:u?u.id:'',tgl:getVal('rTgl'),petugas:getVal('rPetugas'),jenis:currentRekamJenis,formType:formType,form:form});
 }
 function cetakMon(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormPdf(jenis,true,m);}
 function cetakMonDocx(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormDocx(jenis,true,m).catch(e=>toast('Gagal: '+e.message,'e'));}
 function cetakMonExcel(id){const m=DB.monitoring.find(x=>x.id===id);if(!m)return;const u=unitById(m.unitId);const jenis=(u?u.jenis:(m.jenis||'SPPG'));generateFormXlsx(jenis,true,m);}
-function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{fields:{}}});}
+function cetakUnitForm(jenis,unitId){generateFormPdf(jenis,false,{unitId:unitId||'',jenis:jenis,formType:(jenis==='KDMP'?'KDMP':'SPPG'),form:jenis==='KDMP'?{sections:[],compliance:[]}:{version:SPPG_FORM_VERSION,fields:{}}});}
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a298968169a3b907',t:'MTc4NjQ2NTQzOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28720658abc842c',t:'MTc4NjI4MjM0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a28c9ecad943fe90',t:'MTc4NjMzOTk0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a29c15864a336cee',t:'MTc4NjUwMjA5OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
